@@ -446,8 +446,7 @@ json_group = parser.add_argument_group("Arguments dealing with json output",
                                        "    - title\n"
                                        "    - type\n"
                                        "    [- stored_path]")
-file_group = parser.add_argument_group("Arguments dealing with files",
-                                       "These can only be set if -l is not used.")
+file_group = parser.add_argument_group("Arguments dealing with files")
 
 method_group.add_argument("-a", "--all",
                           help="Downloads every post of the provided profile URLs/files\n"
