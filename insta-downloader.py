@@ -139,6 +139,11 @@ def info_profile(profile, verbose=False, filename=""):
                     for obj in range(profile[user][post_url]):
                         print_dict[user][post_url][keylist[obj]] = profile[user][post_url][obj]
                     if filename != "":
+                        if ".json" in filename:
+                            filename.replace(".json", "")
+                        if not filename.endswith("-"):
+                            filename += "-"
+                        filename += "-(" + profile + ")-(" + post_url.split("/")[4] + ")"
                         write_json(filename, print_dict, check=False)
                     else:
                         print(json.dumps(print_dict))
@@ -176,6 +181,7 @@ def driver_startup(driver_visible=False, disable_login=False, driver_sleep=defau
 
 
 def update_profile(history_file, name, post_list, debug_read_write=False):
+    update_dict = {}
     for post in diff_history(history_file, name, post_list, debug_read=debug_read_write):
         post_results = get_insta_post(post, name, write_file=not args.links,
                                       file_path=args.filepath, file_name=args.filename,
@@ -186,6 +192,9 @@ def update_profile(history_file, name, post_list, debug_read_write=False):
         history_json = load_json(history_fullpath, debug=debug_read_write)
         history_json[profile_name][post] = post_results
         write_json(history_file, history_json, debug=debug_read_write)
+        update_dict[name] = {}
+        update_dict[name][post] = post_results
+    return update_dict
 
 
 def get_insta_post(url, name, driver=None,
@@ -426,7 +435,7 @@ def download_profile_url(url, name, driver, no_login=False, driver_sleep=default
 
 cwd = os.getcwd()
 default_infopath = cwd
-default_infoname = "insta_update.json"
+default_infoname = "insta_info-"
 os.chdir(os.path.realpath(__file__))
 
 parser = argparse.ArgumentParser(description="Download Instagram posts of a given profile url/file\n\n"
@@ -488,7 +497,7 @@ json_group.add_argument("-jp", "--json_path",
                         help="Changes the default output directory for generated json information",
                         type=str, default=default_infopath)
 json_group.add_argument("-jn", "--json_filename",
-                        help="Changes the default output filename for generated json information\n"
+                        help="Changes the default output filename scheme for generated json information\n"
                              "If an empty string is provided, the output will be redirected to the console",
                         type=str, default=default_infoname)
 
@@ -580,12 +589,12 @@ elif args.update:
                                              no_login=args.no_login, driver_sleep=args.sleep,
                                              debug_download=debug_output)
 
-            update_profile(history_fullpath, profile_name, profile_list)
+            profile_dict = update_profile(history_fullpath, profile_name, profile_list)
             json_path = os.path.normpath(args.json_filepath + "/" + args.json_filename)
             if args.json and args.json_filename != "":
-                info_profile(profile_list, filename=json_path)
+                info_profile(profile_dict, filename=json_path)
             elif args.json and args.json_filename == "":
-                info_profile(profile_list, filename="")
+                info_profile(profile_dict, filename="")
         else:
             profile = os.path.normpath(cwd + "/" + profile)
             with open(profile, "r") as file:
@@ -602,12 +611,12 @@ elif args.update:
                                                      no_login=args.no_login, driver_sleep=args.sleep,
                                                      debug_download=debug_output)
 
-                    update_profile(history_fullpath, profile_name, profile_list)
+                    profile_dict = update_profile(history_fullpath, profile_name, profile_list)
                     json_path = os.path.normpath(args.json_filepath + "/" + args.json_filename)
                     if args.json and args.json_filename != "":
-                        info_profile(profile_list, filename=json_path)
+                        info_profile(profile_dict, filename=json_path)
                     elif args.json and args.json_filename == "":
-                        info_profile(profile_list, filename="")
+                        info_profile(profile_dict, filename="")
                 else:
                     if debug_output:
                         print("Ignoring wrong URL. File: '" + profile + "' Line: '" + line + "'")
