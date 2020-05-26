@@ -185,7 +185,7 @@ def driver_startup(driver_visible=False, disable_login=False, driver_sleep=defau
 def update_profile(history_file, name, post_list, debug_read_write=False):
     update_dict = {}
     for post in diff_history(history_file, name, post_list, debug_read=debug_read_write):
-        post_results = get_insta_post(post, name, write_file=not args.links,
+        post_results = get_insta_post(post, name, write_file=not args.json,
                                       file_path=args.filepath, file_name=args.filename,
                                       debug_download=debug_output,
                                       driver_visible=visible,
