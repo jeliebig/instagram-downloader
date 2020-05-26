@@ -566,7 +566,7 @@ if args.all:
             history = load_json(history_fullpath, debug=debug_file)
             history[profile_name] = profile_dict
             write_json(history_fullpath, history)
-            json_path = os.path.normpath(args.json_filepath + "/" + args.json_filename)
+            json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
             if args.json and args.json_filename != "":
                 info_profile(profile_dict, filename=json_path)
             elif args.json and args.json_filename == "":
@@ -593,7 +593,7 @@ if args.all:
                     history = load_json(history_fullpath, debug=debug_file)
                     history[profile_name] = profile_dict
                     write_json(history_fullpath, history)
-                    json_path = os.path.normpath(args.json_filepath + "/" + args.json_filename)
+                    json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
                     if args.json and args.json_filename != "":
                         info_profile(profile_dict, filename=json_path)
                     elif args.json and args.json_filename == "":
@@ -617,7 +617,7 @@ elif args.update:
                                              debug_download=debug_output)
 
             profile_dict = update_profile(history_fullpath, profile_name, profile_list)
-            json_path = os.path.normpath(args.json_filepath + "/" + args.json_filename)
+            json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
             if args.json and args.json_filename != "":
                 info_profile(profile_dict, filename=json_path)
             elif args.json and args.json_filename == "":
@@ -639,7 +639,7 @@ elif args.update:
                                                      debug_download=debug_output)
 
                     profile_dict = update_profile(history_fullpath, profile_name, profile_list)
-                    json_path = os.path.normpath(args.json_filepath + "/" + args.json_filename)
+                    json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
                     if args.json and args.json_filename != "":
                         info_profile(profile_dict, filename=json_path)
                     elif args.json and args.json_filename == "":
