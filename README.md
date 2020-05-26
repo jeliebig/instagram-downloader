@@ -64,7 +64,7 @@ Arguments dealing with files:
 ```
 
 
-## How to run
+## How to setup
 
 You can simply clone the repository and if you already installed selenium and used it with Firefox before you are good to go.
 
