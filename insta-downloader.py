@@ -192,6 +192,10 @@ def update_profile(history_file, name, post_list, debug_read_write=False):
                                       driver_sleep=args.sleep,
                                       write_debug=debug_read_write, no_info=args.no_info)
         history_json = load_json(history_fullpath, debug=debug_read_write)
+        if profile_name not in history_json.keys():
+            history_json[profile_name] = {}
+        if post not in history_json[profile_name].keys():
+            history_json[profile_name][post] = {}
         history_json[profile_name][post] = post_results
         write_json(history_file, history_json, debug=debug_read_write)
         update_dict[name] = {}
