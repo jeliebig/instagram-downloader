@@ -607,8 +607,11 @@ if args.all:
                     if debug_output:
                         print("Ignoring wrong URL. File: '" + profile + "' Line: '" + line + "'")
         if args.remove_profile:
-            os.remove(profile)
-            profile_num -= 1
+            try:
+                os.remove(profile)
+                profile_num -= 1
+            except FileNotFoundError:
+                pass
 elif args.update:
     for profile_num in range(len(args.profiles)):
         profile = args.profiles[profile_num]
@@ -659,8 +662,11 @@ elif args.update:
                     if debug_output:
                         print("Ignoring wrong URL. File: '" + profile + "' Line: '" + line + "'")
         if args.remove_profile:
-            os.remove(profile)
-            profile_num -= 1
+            try:
+                os.remove(profile)
+                profile_num -= 1
+            except FileNotFoundError:
+                pass
 
 if args.progress_file:
     if debug_file:
