@@ -44,6 +44,10 @@ optional arguments:
   -rp, --remove_profile
                         removes the provided profiles if they are files (default: False)
 
+  -pf, --progress_file
+                        generates an empty file on startup and deletes it after execution
+                        Note: This makes the script wait until the file is removed if the file has already been created. (default: False)
+
 Arguments dealing with json output:
   The json file contains the following information: 
                     [username; icon_url; save_url; time_post; title; type; (stored_path)]

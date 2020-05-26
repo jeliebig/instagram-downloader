@@ -14,6 +14,7 @@ config_creds = "config/creds.json"
 config_history = "insta_history.json"
 default_sleep = 2
 default_historypath = "config"
+default_progressfile = "config/id_in_progress.lock"
 default_filename = "instagram-%upload_date%-"
 default_filepath = "data/%profile%/%upload_date%"
 replace_badfilename = {"/": "_", "\\": "_", "?": "_",
@@ -516,6 +517,11 @@ parser.add_argument("-ni", "--no_info",
 parser.add_argument("-rp", "--remove_profile",
                     help="removes the provided profiles if they are files",
                     action="store_true")
+parser.add_argument("-pf", "--progress_file",
+                    help="generates an empty file on startup and deletes it after execution\n"
+                         "Note: This makes the script wait until the file is removed "
+                         "if the file has already been created.",
+                    action="store_true")
 parser.add_argument("profiles",
                     help="specifies one or more profile URLs and/or files to download",
                     type=str, nargs="+")
@@ -527,6 +533,20 @@ debug_output = args.verbose >= 1
 
 history_fullpath = args.history_path + "/" + config_history
 os.makedirs(args.history_path, exist_ok=True)
+
+if args.progress_file:
+    if debug_output:
+        if os.path.isfile(default_progressfile):
+            print("Waiting until in_progress file is removed...")
+    while os.path.isfile(default_progressfile):
+        pass
+    if debug_file:
+        print("Writing in_progress file...")
+    with open(default_progressfile, "w") as file:
+        file.write("")
+    if debug_output:
+        print("Starting execution...")
+
 
 if args.all:
     for profile in args.profiles:
@@ -629,3 +649,8 @@ elif args.update:
                         print("Ignoring wrong URL. File: '" + profile + "' Line: '" + line + "'")
             if args.remove_profile:
                 os.remove(profile)
+
+if args.progress_file:
+    if debug_file:
+        print("Removing in_progress file...")
+    os.remove(default_progressfile)
