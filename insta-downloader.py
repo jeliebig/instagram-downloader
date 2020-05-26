@@ -459,61 +459,62 @@ json_group = parser.add_argument_group("Arguments dealing with json output",
 file_group = parser.add_argument_group("Arguments dealing with files")
 
 method_group.add_argument("-a", "--all",
-                          help="Downloads every post of the provided profile URLs/files\n"
+                          help="downloads every post of the provided profile URLs/files\n"
                                "Note:\n"
                                "    This option does not check the contents of the history file!\n"
                                "    If you already added one of the provided profiles the history will be overwritten.",
                           action="store_true")
 method_group.add_argument("-u", "--update",
-                          help="Downloads the newest posts of the provided profile URLs/files",
+                          help="downloads the newest posts of the provided profile URLs/files",
                           action="store_true")
 
 history_group.add_argument("-hp", "--history_path",
-                           help="Changes the default history directory to use for downloaded Instagram posts",
+                           help="changes the default history directory to use for downloaded Instagram posts",
                            default=default_historypath, type=str)
 history_group.add_argument("-nh", "--no_history",
-                           help="Disables using the Instagram history file (reading and writing)",
+                           help="disables using the Instagram history file (reading and writing)",
                            action="store_true")
 
 login_group.add_argument("-c", "--creds",
-                         help="Selects the credentials to be used to log in to Instagram from the json config",
+                         help="selects the credentials to be used to log in to Instagram from the json config",
                          type=str, default="default")
 login_group.add_argument("-nl", "--no_login",
-                         help="Disables Instagram login, you may not be able to download all posts from a profile\n"
+                         help="disables Instagram login, you may not be able to download all posts from a profile\n"
                               "Note: Use this option when using -u to speed up the process",
                          action="store_true")
 
 file_group.add_argument("-fp", "--filepath",
-                        help="Changes the default download directory for saving Instagram posts",
+                        help="changes the default download directory for saving Instagram posts",
                         type=str, default=default_filepath)
 file_group.add_argument("-fn", "--filename",
-                        help="Changes the default output filename scheme\n"
-                             "Using %%title%% allows you to use the title of a post in the filename",
+                        help="changes the default output filename scheme - \n"
+                             "using %%title%% allows you to use the title of a post in the filename",
                         type=str, default=default_filename)
 
 json_group.add_argument("-j", "--json",
-                        help="Returns a generated json file with information about the provided profile URLs/files",
+                        help="returns a generated json file with information about the provided profile URLs/files",
                         action="store_true")
 json_group.add_argument("-jp", "--json_path",
-                        help="Changes the default output directory for generated json information",
+                        help="changes the default output directory for generated json information",
                         type=str, default=default_infopath)
 json_group.add_argument("-jn", "--json_filename",
-                        help="Changes the default output filename scheme for generated json information\n"
-                             "If an empty string is provided, the output will be redirected to the console",
+                        help="changes the default output filename scheme for generated json information - \n"
+                             "if an empty string is provided the output will be redirected to the console",
                         type=str, default=default_infoname)
 
 parser.add_argument("-v", "--verbose",
-                    help="Displays more information about the script. Using it twice displays even more information."
-                         "Using it three times makes the browser visible",
+                    help="displays more information about the script - \n"
+                         " using it twice displays even more information. - \n"
+                         " using it three times makes the browser visible",
                     action="count")
 parser.add_argument("-s", "--sleep",
-                    help="Sets the wait time for websites to load, depends on your computer and internet speed",
+                    help="sets the wait time for websites to load, depends on your computer and internet speed",
                     type=int, default=default_sleep)
 parser.add_argument("-ni", "--no_info",
-                    help="Disables writing .info files for downloaded Instagram posts",
+                    help="disables writing .info files for downloaded Instagram posts",
                     action="store_true")
 parser.add_argument("profiles",
-                    help="Specifies one or more profile URLs and/or files to download",
+                    help="specifies one or more profile URLs and/or files to download",
                     type=str, nargs="+")
 args = parser.parse_args()
 

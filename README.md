@@ -11,52 +11,55 @@ Download Instagram posts of provided profile URLs/files
 Github: https://github.com/jeliebig/instagram-downloader
 
 positional arguments:
-  profiles              Specifies one or more profile URLs and/or files to download
+  profiles              specifies one or more profile URLs and/or files to download
 
 optional arguments:
   -h, --help            show this help message and exit
 
-  -a, --all             Downloads every post of the provided profile URLs/files
+  -a, --all             downloads every post of the provided profile URLs/files
                         Note: This option does not check the contents of the history file!
                                 If you already added one of the provided profiles the history will be overwritten. (default: False)
 
-  -u, --update          Downloads the newest posts of the provided profile URLs/files (default: False)
+  -u, --update          downloads the newest posts of the provided profile URLs/files (default: False)
 
   -hp HISTORY_PATH, --history_path HISTORY_PATH
-                        Changes the default history directory to use for downloaded Instagram posts (default: config)
+                        changes the default history directory to use for downloaded Instagram posts (default: config)
 
-  -nh, --no_history     Disables using the Instagram history file (reading and writing) (default: False)
+  -nh, --no_history     disables using the Instagram history file (reading and writing) (default: False)
   -c CREDS, --creds CREDS
-                        Selects the credentials to be used to log in to Instagram from the json config (default: default)
+                        selects the credentials to be used to log in to Instagram from the json config (default: default)
 
-  -nl, --no_login       Disables Instagram login, you may not be able to download all posts from a profile Note: Use this option when using -u to speed up the process (default: False)
+  -nl, --no_login       disables Instagram login, you may not be able to download all posts from a profile Note: Use this option when using -u to speed up the process (default: False)
 
-  -v, --verbose         Displays more information about the script. Using it twice displays even more information.Using it three times makes the browser visible (default: None)
+  -v, --verbose         displays more information about the script
+                         using it twice displays even more information
+                         using it three times makes the browser visible (default: None)
 
   -s SLEEP, --sleep SLEEP
-                        Sets the wait time for websites to load, depends on your computer and internet speed (default: 2)
+                        sets the wait time for websites to load, depends on your computer and internet speed (default: 2)
 
-  -ni, --no_info        Disables writing .info files for downloaded Instagram posts (default: False)
+  -ni, --no_info        disables writing .info files for downloaded Instagram posts (default: False)
 
 Arguments dealing with json output:
   The json file contains the following information: 
                     [username; icon_url; save_url; time_post; title; type; (stored_path)]
 
-  -j, --json            Returns a generated json file with information about the provided profile URLs/files (default: False)
+  -j, --json            returns a generated json file with information about the provided profile URLs/files (default: False)
 
   -jp JSON_PATH, --json_path JSON_PATH
-                        Changes the default output directory for generated json information (default: /home/test/instagram-downloader)
+                        changes the default output directory for generated json information (default: /home/test/instagram-downloader)
 
   -jn JSON_FILENAME, --json_filename JSON_FILENAME
-                        Changes the default output filename scheme for generated json information If an empty string is provided, the output will be redirected to the console (default:
-                        insta_info-)
+                        changes the default output filename scheme for generated json information
+                        if an empty string is provided the output will be redirected to the console (default: insta_info-)
 
 Arguments dealing with files:
   -fp FILEPATH, --filepath FILEPATH
-                        Changes the default download directory for saving Instagram posts (default: data/%profile%/%upload_date%)
+                        changes the default download directory for saving Instagram posts (default: data/%profile%/%upload_date%)
 
   -fn FILENAME, --filename FILENAME
-                        Changes the default output filename scheme Using %title% allows you to use the title of a post in the filename (default: instagram-%upload_date%-)
+                        changes the default output filename scheme 
+                            using %title% allows you to use the title of a post in the filename (default: instagram-%upload_date%-)
 ```
 
 
