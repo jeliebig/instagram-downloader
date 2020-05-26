@@ -288,7 +288,7 @@ def get_insta_post(url, name, driver=None,
                     title = str(
                         driver.execute_script('return document.getElementsByTagName("h2")[0].nextSibling.textContent'))
                 else:
-                    title = "[posted without title]"
+                    title = "__no title__"
                 content_list = [insta_name, icon_url, save_url, time_post, title, key]
                 if save_url not in content_all.keys():
                     content_all[save_url] = content_list
