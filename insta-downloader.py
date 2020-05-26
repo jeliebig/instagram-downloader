@@ -549,7 +549,7 @@ if args.progress_file:
 
 
 if args.all:
-    for profile_num in range(args.profiles):
+    for profile_num in range(len(args.profiles)):
         profile = args.profiles[profile_num]
         if profile.startswith(main_url):
             profile_name = profile.split("/")[3]
@@ -609,7 +609,7 @@ if args.all:
             os.remove(profile)
             profile_num -= 1
 elif args.update:
-    for profile_num in range(args.profiles):
+    for profile_num in range(len(args.profiles)):
         profile = args.profiles[profile_num]
         if profile.startswith(main_url):
             profile_name = profile.split("/")[3]
