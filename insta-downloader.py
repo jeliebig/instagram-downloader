@@ -579,6 +579,7 @@ if args.all:
                     text = [x.replace("\n", "") for x in file.readlines()]
             except FileNotFoundError:
                 print("Error: The following file does not exist:", profile)
+                text = []
             for line in text:
                 if line.startswith(main_url):
                     profile_name = line.split("/")[3]
@@ -635,6 +636,7 @@ elif args.update:
                     text = [x.replace("\n", "") for x in file.readlines()]
             except FileNotFoundError:
                 print("Error: The following file does not exist:", profile)
+                text = []
             for line in text:
                 if line.startswith(main_url):
                     profile_name = line.split("/")[3]
