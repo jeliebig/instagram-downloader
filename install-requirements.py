@@ -61,8 +61,8 @@ elif platform.system() == "Linux":
         if "geckodriver" in os.listdir(path):
             gecko_here = True
             break
-    print("Running 'apt install firefox -y'")
-    os.system("apt install firefox -y")
+    print("Running 'sudo apt install firefox -y'")
+    os.system("sudo apt install firefox -y")
     print("Done.")
     if not gecko_here:
         print("Downloading latest geckodriver...")
