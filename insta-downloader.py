@@ -609,7 +609,8 @@ if args.all:
         if args.remove_profile:
             try:
                 os.remove(profile)
-                profile_num -= 1
+                if profile_num != 0:
+                    profile_num -= 1
             except FileNotFoundError:
                 pass
 elif args.update:
@@ -664,7 +665,8 @@ elif args.update:
         if args.remove_profile:
             try:
                 os.remove(profile)
-                profile_num -= 1
+                if profile_num != 0:
+                    profile_num -= 1
             except FileNotFoundError:
                 pass
 
