@@ -3,7 +3,7 @@ A little python tool to download all or just the recent Instagram posts of provi
 
 ## Syntax (How to use)
 Here is the (slightly better formatted) help output of my script:
-```bash
+```
 test@test:~/insta-downloader$ ./insta-downloader.py -h
 usage: insta-downloader.py (-a | -u) profiles [options]
 
@@ -29,7 +29,8 @@ optional arguments:
   -c CREDS, --creds CREDS
                         selects the credentials to be used to log in to Instagram from the json config (default: default)
 
-  -nl, --no_login       disables Instagram login, you may not be able to download all posts from a profile Note: Use this option when using -u to speed up the process (default: False)
+  -nl, --no_login       disables Instagram login, you may not be able to download all posts from a profile
+                         Note: Use this option when using -u to speed up the process (default: False)
 
   -v, --verbose         displays more information about the script
                          using it twice displays even more information
@@ -63,7 +64,7 @@ Arguments dealing with files:
 ```
 
 
-## How to run
+## How to setup
 
 You can simply clone the repository and if you already installed selenium and used it with Firefox before you are good to go.
 
