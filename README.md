@@ -3,7 +3,7 @@ A little python tool to download all or just the recent Instagram posts of provi
 
 ## Syntax (How to use)
 Here is the (slightly better formatted) help output of my script:
-```bash
+```
 test@test:~/insta-downloader$ ./insta-downloader.py -h
 usage: insta-downloader.py (-a | -u) profiles [options]
 
