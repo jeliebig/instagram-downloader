@@ -1,6 +1,7 @@
+from pathlib import Path
+from selenium import webdriver
 import datetime
 import urllib.request
-from selenium import webdriver
 import selenium.common.exceptions
 import argparse
 import shutil
@@ -436,9 +437,9 @@ def download_profile_url(url, name, driver, no_login=False, driver_sleep=default
 cwd = os.getcwd()
 default_infopath = cwd
 default_infoname = "insta_info-"
-os.chdir(os.path.realpath(__file__))
+os.chdir(Path(__file__).parent.absolute())
 
-parser = argparse.ArgumentParser(description="Download Instagram posts of a given profile url/file\n\n"
+parser = argparse.ArgumentParser(description="Download Instagram posts of provided profile URLs/files\n"
                                              "Github: https://github.com/jeliebig/instagram-downloader",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                  usage="%(prog)s (-a | -u) profiles [options]")
@@ -448,13 +449,13 @@ history_group = parser.add_mutually_exclusive_group()
 login_group = parser.add_mutually_exclusive_group()
 json_group = parser.add_argument_group("Arguments dealing with json output",
                                        "The json file contains the following information:\n"
-                                       "    - username\n"
-                                       "    - icon_url\n"
-                                       "    - save_url\n"
-                                       "    - time_post\n"
-                                       "    - title\n"
-                                       "    - type\n"
-                                       "    [- stored_path]")
+                                       "    -username\n"
+                                       "    -icon_url\n"
+                                       "    -save_url\n"
+                                       "    -time_post\n"
+                                       "    -title\n"
+                                       "    -type\n"
+                                       "    [-stored_path]")
 file_group = parser.add_argument_group("Arguments dealing with files")
 
 method_group.add_argument("-a", "--all",
@@ -487,7 +488,7 @@ file_group.add_argument("-fp", "--filepath",
                         type=str, default=default_filepath)
 file_group.add_argument("-fn", "--filename",
                         help="Changes the default output filename scheme\n"
-                             "Using %title% allows you to use the title of a post in the filename",
+                             "Using %%title%% allows you to use the title of a post in the filename",
                         type=str, default=default_filename)
 
 json_group.add_argument("-j", "--json",
