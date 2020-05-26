@@ -18,7 +18,7 @@ default_filepath = "data/%profile%/%upload_date%"
 replace_badfilename = {"/": "_", "\\": "_", "?": "_",
                        "%": "per cent", "*": "_", ":": "_",
                        "|": "_", '"': "_", "'": "_", "<": "_",
-                       ">": "_", ".": "_", "&": "_and_", ",": "_"}
+                       ">": "_", ".": "_", "&": "-and-", ",": "_", " ": "-"}
 
 
 def load_json(filename, debug=False):
