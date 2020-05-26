@@ -573,9 +573,13 @@ if args.all:
             write_json(history_fullpath, history)
             json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
             if args.json and args.json_filename != "":
-                info_profile(profile_dict, filename=json_path)
+                if debug_file:
+                    print("Starting to create json_file")
+                info_profile(profile_dict, filename=json_path, verbose=debug_file)
             elif args.json and args.json_filename == "":
-                info_profile(profile_dict, filename="")
+                if debug_file:
+                    print("Starting to create json output")
+                info_profile(profile_dict, filename="", verbose=debug_file)
         else:
             profile = os.path.normpath(cwd + "/" + profile)
             try:
