@@ -549,7 +549,8 @@ if args.progress_file:
 
 
 if args.all:
-    for profile in args.profiles:
+    for profile_num in range(args.profiles):
+        profile = args.profiles[profile_num]
         if profile.startswith(main_url):
             profile_name = profile.split("/")[3]
             profile_dict = download_profile_url(profile, profile_name,
@@ -573,8 +574,11 @@ if args.all:
                 info_profile(profile_dict, filename="")
         else:
             profile = os.path.normpath(cwd + "/" + profile)
-            with open(profile, "r") as file:
-                text = [x.replace("\n", "") for x in file.readlines()]
+            try:
+                with open(profile, "r") as file:
+                    text = [x.replace("\n", "") for x in file.readlines()]
+            except FileNotFoundError:
+                print("Error: The following file does not exist:", profile)
             for line in text:
                 if line.startswith(main_url):
                     profile_name = line.split("/")[3]
@@ -601,10 +605,12 @@ if args.all:
                 else:
                     if debug_output:
                         print("Ignoring wrong URL. File: '" + profile + "' Line: '" + line + "'")
-            if args.remove_profile:
-                os.remove(profile)
+        if args.remove_profile:
+            os.remove(profile)
+            profile_num -= 1
 elif args.update:
-    for profile in args.profiles:
+    for profile_num in range(args.profiles):
+        profile = args.profiles[profile_num]
         if profile.startswith(main_url):
             profile_name = profile.split("/")[3]
             profile_list = check_profile_url(profile,
@@ -624,8 +630,11 @@ elif args.update:
                 info_profile(profile_dict, filename="")
         else:
             profile = os.path.normpath(cwd + "/" + profile)
-            with open(profile, "r") as file:
-                text = [x.replace("\n", "") for x in file.readlines()]
+            try:
+                with open(profile, "r") as file:
+                    text = [x.replace("\n", "") for x in file.readlines()]
+            except FileNotFoundError:
+                print("Error: The following file does not exist:", profile)
             for line in text:
                 if line.startswith(main_url):
                     profile_name = line.split("/")[3]
@@ -647,8 +656,9 @@ elif args.update:
                 else:
                     if debug_output:
                         print("Ignoring wrong URL. File: '" + profile + "' Line: '" + line + "'")
-            if args.remove_profile:
-                os.remove(profile)
+        if args.remove_profile:
+            os.remove(profile)
+            profile_num -= 1
 
 if args.progress_file:
     if debug_file:
