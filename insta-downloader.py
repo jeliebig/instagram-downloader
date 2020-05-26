@@ -513,6 +513,9 @@ parser.add_argument("-s", "--sleep",
 parser.add_argument("-ni", "--no_info",
                     help="disables writing .info files for downloaded Instagram posts",
                     action="store_true")
+parser.add_argument_group("-rp", "--remove_profile",
+                          help="removes the provided profiles if they are files",
+                          action="store_true")
 parser.add_argument("profiles",
                     help="specifies one or more profile URLs and/or files to download",
                     type=str, nargs="+")
@@ -578,6 +581,8 @@ if args.all:
                 else:
                     if debug_output:
                         print("Ignoring wrong URL. File: '" + profile + "' Line: '" + line + "'")
+            if args.remove_profile:
+                os.remove(profile)
 elif args.update:
     for profile in args.profiles:
         if profile.startswith(main_url):
@@ -622,3 +627,5 @@ elif args.update:
                 else:
                     if debug_output:
                         print("Ignoring wrong URL. File: '" + profile + "' Line: '" + line + "'")
+            if args.remove_profile:
+                os.remove(profile)

@@ -41,6 +41,9 @@ optional arguments:
 
   -ni, --no_info        disables writing .info files for downloaded Instagram posts (default: False)
 
+  -rp, --remove_profile
+                        removes the provided profiles if they are files (default: False)
+
 Arguments dealing with json output:
   The json file contains the following information: 
                     [username; icon_url; save_url; time_post; title; type; (stored_path)]
