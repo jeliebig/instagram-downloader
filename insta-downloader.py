@@ -133,11 +133,11 @@ def info_profile(profile, verbose=False, filename=""):
         for post_url in profile[user]:
             if verbose:
                 print("[" + user + "]: downloaded post URL: " + post_url)
-                for obj in range(profile[user][post_url]):
+                for obj in range(len(profile[user][post_url])):
                     print("[" + user + "][" + post_url + "][" + keylist[obj] + "]: " + profile[user][post_url][obj])
             else:
                 print_dict = {user: {}}
-                for obj in range(profile[user][post_url]):
+                for obj in range(len(profile[user][post_url])):
                     print_dict[user][post_url][keylist[obj]] = profile[user][post_url][obj]
                 if filename != "":
                     if ".json" in filename:
