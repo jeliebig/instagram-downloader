@@ -248,7 +248,7 @@ def get_insta_post(url, name, driver=None,
                         continue
                     if debug_download:
                         print("Found post name: ", insta_name)
-                        print("Now downloading: ", content.location)
+                        print("Now inspecting: ", content.get_attribute("src"))
                         print("Using key: ", key)
                     icon_url = str(driver.find_element_by_tag_name("article").find_element_by_tag_name("header") \
                                    .find_element_by_tag_name("img").get_attribute("src"))
@@ -283,7 +283,7 @@ def get_insta_post(url, name, driver=None,
                     continue
                 if debug_download:
                     print("Found post name: ", insta_name)
-                    print("Now downloading: ", content.get_attribute("src"))
+                    print("Now inspecting: ", content.get_attribute("src"))
                     print("Using key: ", key)
                 icon_url = str(driver.find_element_by_tag_name("article").find_element_by_tag_name("header") \
                                .find_element_by_tag_name("img").get_attribute("src"))
