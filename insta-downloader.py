@@ -128,27 +128,31 @@ def write_json(filename, write_dict, debug=False, check=True):
 def info_profile(profile, verbose=False, filename=""):
     keylist = ["username", "icon_url", "save_url", "time_post", "title", "type", "stored_path"]
     for user in profile.keys():
+        print_dict = {user: {}}
         if verbose:
             print("Processing information about user:", user)
         for post_url in profile[user]:
+            if post_url not in print_dict[user].keys():
+                print_dict[user][post_url] = {}
             if verbose:
                 print("[" + user + "]: downloaded post URL: " + post_url)
-            print_dict = {user: {}}
-            for obj in range(len(profile[user][post_url])):
-                if post_url not in print_dict[user].keys():
-                    print_dict[user][post_url] = {}
-                if verbose:
-                    print("[" + user + "][" + post_url + "][" + keylist[obj] + "]: " + profile[user][post_url][obj])
-                print_dict[user][post_url][keylist[obj]] = profile[user][post_url][obj]
-            if filename != "":
-                if ".json" in filename:
-                    filename.replace(".json", "")
-                if not filename.endswith("-"):
-                    filename += "-"
-                filename += "-(" + user + ")-(" + post_url.split("/")[4] + ")"
-                write_json(filename, print_dict, check=False)
-            else:
-                print(json.dumps(print_dict))
+            for save_url in profile[user][post_url].keys():
+                if save_url not in print_dict[user][post_url]:
+                    print_dict[user][post_url][save_url] = []
+                for obj in range(len(profile[user][post_url][save_url])):
+                    if verbose:
+                        print("[" + user + "][" + save_url + "][" + keylist[obj] + "]: " +
+                              print_dict[user][post_url][save_url][obj])
+                    print_dict[user][post_url][save_url][keylist[obj]] = print_dict[user][post_url][save_url][obj]
+                if filename != "":
+                    if ".json" in filename:
+                        filename.replace(".json", "")
+                    if not filename.endswith("-"):
+                        filename += "-"
+                    filename += "-(" + user + ")-(" + post_url.split("/")[4] + ")"
+                    write_json(filename, print_dict, check=False)
+                else:
+                    print(json.dumps(print_dict))
         if verbose:
             print("Finished processing information about user:", user)
 
