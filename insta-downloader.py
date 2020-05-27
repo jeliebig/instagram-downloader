@@ -142,9 +142,6 @@ def info_profile(profile, verbose=False, filename=""):
                     if verbose:
                         print("List of saved URL:", profile[user][post_url][save_url])
                 for obj in range(len(profile[user][post_url][save_url])):
-                    if verbose:
-                        print("[" + user + "][" + save_url + "][" + keylist[obj] + "]: " +
-                              profile[user][post_url][save_url][obj])
                     print_dict[user][post_url][save_url][keylist[obj]] = profile[user][post_url][save_url][obj]
                 if filename != "":
                     if ".json" in filename:
