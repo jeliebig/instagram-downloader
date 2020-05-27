@@ -633,7 +633,7 @@ if args.all:
                     if args.json and args.json_filename != "":
                         if debug_file:
                             print("Starting to create json_file")
-                        info_profile(profile_dict, filename=json_path, verbose=debug_file)
+                        info_profile({profile_name: profile_dict}, filename=json_path, verbose=debug_file)
                     elif args.json and args.json_filename == "":
                         if debug_file:
                             print("Starting to create json output")
@@ -713,7 +713,7 @@ elif args.update:
                     if args.json and args.json_filename != "":
                         if debug_file:
                             print("Starting to create json_file")
-                        info_profile(profile_dict, filename=json_path, verbose=debug_file)
+                        info_profile({profile_name: profile_dict}, filename=json_path, verbose=debug_file)
                     elif args.json and args.json_filename == "":
                         if debug_file:
                             print("Starting to create json output")
