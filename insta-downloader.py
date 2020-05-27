@@ -445,6 +445,7 @@ default_infopath = cwd
 default_infoname = "insta_info-"
 os.chdir(Path(__file__).parent.absolute())
 
+# noinspection PyTypeChecker
 parser = argparse.ArgumentParser(description="Download Instagram posts of provided profile URLs/files\n"
                                              "Github: https://github.com/jeliebig/instagram-downloader",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter,
