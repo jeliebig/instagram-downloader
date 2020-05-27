@@ -139,6 +139,8 @@ def info_profile(profile, verbose=False, filename=""):
             for save_url in profile[user][post_url].keys():
                 if save_url not in print_dict[user][post_url]:
                     print_dict[user][post_url][save_url] = []
+                    if verbose:
+                        print("List of saved URL:", profile[user][post_url][save_url])
                 for obj in range(len(profile[user][post_url][save_url])):
                     if verbose:
                         print("[" + user + "][" + save_url + "][" + keylist[obj] + "]: " +
