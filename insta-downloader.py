@@ -150,7 +150,7 @@ def info_profile(profile, verbose=False, filename=""):
                 for obj in range(len(profile[user][post_url][save_url])):
                     print_dict[user][post_url][save_url][keylist[obj]] = profile[user][post_url][save_url][obj]
                 if filename != "":
-                    write_json(filename.replace("%user%", user).replace("%post_url%",post_url.split("/")[4]),
+                    write_json(filename.replace("%user%", user).replace("%post_url%", post_url.split("/")[4]),
                                print_dict, check=False)
                 else:
                     print(json.dumps(print_dict))
@@ -559,7 +559,6 @@ if args.progress_file:
     if debug_output:
         print("Starting execution...")
 
-
 if args.all:
     if debug_file:
         print("Downloading every post of the provided profiles...")
@@ -587,7 +586,7 @@ if args.all:
 
             history = load_json(history_fullpath, debug=debug_file)
             history[profile_name] = profile_dict
-            write_json(history_fullpath, history)
+            write_json(history_fullpath, history, debug=debug_file)
             json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
             if args.json and args.json_filename != "":
                 if debug_file:
@@ -629,7 +628,7 @@ if args.all:
 
                     history = load_json(history_fullpath, debug=debug_file)
                     history[profile_name] = profile_dict
-                    write_json(history_fullpath, history)
+                    write_json(history_fullpath, history, debug=debug_file)
                     json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
                     if args.json and args.json_filename != "":
                         if debug_file:
@@ -672,7 +671,7 @@ elif args.update:
             if debug_file:
                 print("Finished downloader process.")
 
-            profile_dict = update_profile(history_fullpath, profile_name, profile_list)
+            profile_dict = update_profile(history_fullpath, profile_name, profile_list, debug_read_write=debug_file)
             json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
             if args.json and args.json_filename != "":
                 if debug_file:
@@ -709,7 +708,7 @@ elif args.update:
                     if debug_file:
                         print("Finished downloader process.")
 
-                    profile_dict = update_profile(history_fullpath, profile_name, profile_list)
+                    profile_dict = update_profile(history_fullpath, profile_name, profile_list, debug_read_write=debug_file)
                     json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
                     if args.json and args.json_filename != "":
                         if debug_file:
