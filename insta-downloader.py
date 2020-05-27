@@ -555,9 +555,16 @@ if args.progress_file:
 
 
 if args.all:
+    if debug_file:
+        print("Downloading every post of the provided profiles...")
     for profile_num in range(len(args.profiles)):
         profile = args.profiles[profile_num]
+        if debug_file:
+            print("Now working on profile:", profile)
         if profile.startswith(main_url):
+            if debug_file:
+                print("Profile is a valid Instagram URL.")
+                print("Starting downloader process with Firefox...")
             profile_name = profile.split("/")[3]
             profile_dict = download_profile_url(profile, profile_name,
                                                 driver_startup(driver_visible=visible,
@@ -569,6 +576,8 @@ if args.all:
                                                 file_path=args.filepath, file_name=args.filename,
                                                 write_debug=debug_file, no_info=args.no_info, write_file=not args.json,
                                                 debug_download=debug_output, driver_visible=visible)
+            if debug_file:
+                print("Finished downloader process.")
 
             history = load_json(history_fullpath, debug=debug_file)
             history[profile_name] = profile_dict
@@ -584,6 +593,8 @@ if args.all:
                 info_profile(profile_dict, filename="", verbose=debug_file)
         else:
             profile = os.path.normpath(cwd + "/" + profile)
+            if debug_file:
+                print("Assuming profile is a file:", profile)
             try:
                 with open(profile, "r") as file:
                     text = [x.replace("\n", "") for x in file.readlines()]
@@ -592,6 +603,9 @@ if args.all:
                 text = []
             for line in text:
                 if line.startswith(main_url):
+                    if debug_file:
+                        print("Working on URL of file:", line)
+                        print("Starting downloader process with Firefox...")
                     profile_name = line.split("/")[3]
                     profile_dict = download_profile_url(line, profile_name,
                                                         driver_startup(driver_visible=visible,
@@ -604,6 +618,8 @@ if args.all:
                                                         write_debug=debug_file, no_info=args.no_info,
                                                         write_file=not args.json,
                                                         debug_download=debug_output, driver_visible=visible)
+                    if debug_file:
+                        print("Finished downloader process.")
 
                     history = load_json(history_fullpath, debug=debug_file)
                     history[profile_name] = profile_dict
@@ -624,9 +640,16 @@ if args.all:
             except FileNotFoundError:
                 pass
 elif args.update:
+    if debug_file:
+        print("Downloading only recent posts of the provided profiles...")
     for profile_num in range(len(args.profiles)):
         profile = args.profiles[profile_num]
+        if debug_file:
+            print("Now working on profile:", profile)
         if profile.startswith(main_url):
+            if debug_file:
+                print("Profile is a valid Instagram URL.")
+                print("Starting downloader process with Firefox...")
             profile_name = profile.split("/")[3]
             profile_list = check_profile_url(profile,
                                              driver_startup(driver_visible=visible,
@@ -636,6 +659,8 @@ elif args.update:
                                                             load_debug=debug_file),
                                              no_login=args.no_login, driver_sleep=args.sleep,
                                              debug_download=debug_output)
+            if debug_file:
+                print("Finished downloader process.")
 
             profile_dict = update_profile(history_fullpath, profile_name, profile_list)
             json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
@@ -645,6 +670,8 @@ elif args.update:
                 info_profile(profile_dict, filename="")
         else:
             profile = os.path.normpath(cwd + "/" + profile)
+            if debug_file:
+                print("Assuming profile is a file:", profile)
             try:
                 with open(profile, "r") as file:
                     text = [x.replace("\n", "") for x in file.readlines()]
@@ -653,6 +680,9 @@ elif args.update:
                 text = []
             for line in text:
                 if line.startswith(main_url):
+                    if debug_file:
+                        print("Working on URL of file:", line)
+                        print("Starting downloader process with Firefox...")
                     profile_name = line.split("/")[3]
                     profile_list = check_profile_url(line,
                                                      driver_startup(driver_visible=visible,
@@ -662,6 +692,8 @@ elif args.update:
                                                                     load_debug=debug_file),
                                                      no_login=args.no_login, driver_sleep=args.sleep,
                                                      debug_download=debug_output)
+                    if debug_file:
+                        print("Finished downloader process.")
 
                     profile_dict = update_profile(history_fullpath, profile_name, profile_list)
                     json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
