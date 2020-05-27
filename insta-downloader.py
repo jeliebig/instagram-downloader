@@ -145,7 +145,7 @@ def info_profile(profile, verbose=False, filename=""):
                     filename.replace(".json", "")
                 if not filename.endswith("-"):
                     filename += "-"
-                filename += "-(" + profile + ")-(" + post_url.split("/")[4] + ")"
+                filename += "-(" + user + ")-(" + post_url.split("/")[4] + ")"
                 write_json(filename, print_dict, check=False)
             else:
                 print(json.dumps(print_dict))
