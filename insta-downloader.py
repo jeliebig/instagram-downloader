@@ -35,7 +35,7 @@ def load_json(filename, debug=False):
         if ".json" in filename:
             filename = filename.split(".json")[0]
         if os.path.isfile(filename + ".json"):
-            with open(filename + ".json", "r") as file:
+            with open(filename + ".json", "rb") as file:
                 text = json.load(file)
             if debug:
                 print("Returning full dict.")
@@ -87,7 +87,7 @@ def write_json(filename, write_dict, debug=False, check=True):
         else:
             if debug:
                 print("Changes found. Writing file: ", filename)
-            with open(filename + ".json.1", "w") as file:
+            with open(filename + ".json.1", "wb") as file:
                 json.dump(write_dict, file)
             if debug:
                 print("Write to dummy complete.")
