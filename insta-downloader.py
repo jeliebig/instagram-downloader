@@ -144,8 +144,8 @@ def info_profile(profile, verbose=False, filename=""):
                 for obj in range(len(profile[user][post_url][save_url])):
                     if verbose:
                         print("[" + user + "][" + save_url + "][" + keylist[obj] + "]: " +
-                              print_dict[user][post_url][save_url][obj])
-                    print_dict[user][post_url][save_url][keylist[obj]] = print_dict[user][post_url][save_url][obj]
+                              profile[user][post_url][save_url][obj])
+                    print_dict[user][post_url][save_url][keylist[obj]] = profile[user][post_url][save_url][obj]
                 if filename != "":
                     if ".json" in filename:
                         filename.replace(".json", "")
