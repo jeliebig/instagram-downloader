@@ -134,10 +134,10 @@ def info_profile(profile, verbose=False, filename=""):
             filename += "-"
         filename += "-(%user%)-(%post_url%)"
     for user in profile.keys():
-        print_dict = {user: {}}
         if verbose:
             print("Processing information about user:", user)
         for post_url in profile[user]:
+            print_dict = {user: {}}
             if post_url not in print_dict[user].keys():
                 print_dict[user][post_url] = {}
             if verbose:
@@ -149,11 +149,11 @@ def info_profile(profile, verbose=False, filename=""):
                         print("List of saved URL:", profile[user][post_url][save_url])
                 for obj in range(len(profile[user][post_url][save_url])):
                     print_dict[user][post_url][save_url][keylist[obj]] = profile[user][post_url][save_url][obj]
-                if filename != "":
-                    write_json(filename.replace("%user%", user).replace("%post_url%", post_url.split("/")[4]),
-                               print_dict, check=False, debug=verbose)
-                else:
-                    print(json.dumps(print_dict))
+            if filename != "":
+                write_json(filename.replace("%user%", user).replace("%post_url%", post_url.split("/")[4]),
+                           print_dict, check=False, debug=verbose)
+            else:
+                print(json.dumps(print_dict))
         if verbose:
             print("Finished processing information about user:", user)
 
