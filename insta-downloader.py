@@ -35,7 +35,7 @@ def load_json(filename, debug=False):
         if ".json" in filename:
             filename = filename.split(".json")[0]
         if os.path.isfile(filename + ".json"):
-            with open(filename + ".json", "rb") as file:
+            with open(filename + ".json", "r") as file:
                 text = json.load(file)
             if debug:
                 print("Returning full dict.")
@@ -87,7 +87,7 @@ def write_json(filename, write_dict, debug=False, check=True):
         else:
             if debug:
                 print("Changes found. Writing file: ", filename)
-            with open(filename + ".json.1", "wb") as file:
+            with open(filename + ".json.1", "w") as file:
                 json.dump(write_dict, file)
             if debug:
                 print("Write to dummy complete.")
@@ -151,7 +151,7 @@ def info_profile(profile, verbose=False, filename=""):
                     print_dict[user][post_url][save_url][keylist[obj]] = profile[user][post_url][save_url][obj]
                 if filename != "":
                     write_json(filename.replace("%user%", user).replace("%post_url%", post_url.split("/")[4]),
-                               print_dict, check=False)
+                               print_dict, check=False, debug=verbose)
                 else:
                     print(json.dumps(print_dict))
         if verbose:
@@ -676,7 +676,7 @@ elif args.update:
             if args.json and args.json_filename != "":
                 if debug_file:
                     print("Starting to create json_file")
-                info_profile(profile_dict, filename=json_path, verbose=debug_file)
+                info_profile({profile_name: profile_dict}, filename=json_path, verbose=debug_file)
             elif args.json and args.json_filename == "":
                 if debug_file:
                     print("Starting to create json output")
