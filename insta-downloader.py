@@ -268,7 +268,7 @@ def get_insta_post(url, name, driver=None,
                                 'return document.getElementsByTagName("h2")[0].nextSibling.textContent'))
                     else:
                         title = "__no title__"
-                    content_list = [insta_name, icon_url, save_url, time_post, title, key]
+                    content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title, key]
                     if save_url not in content_all.keys():
                         if debug_download:
                             print("Adding URL to download list: ", save_url)
@@ -301,7 +301,7 @@ def get_insta_post(url, name, driver=None,
                         driver.execute_script('return document.getElementsByTagName("h2")[0].nextSibling.textContent'))
                 else:
                     title = "__no title__"
-                content_list = [insta_name, icon_url, save_url, time_post, title, key]
+                content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title, key]
                 if save_url not in content_all.keys():
                     content_all[save_url] = content_list
     if not write_file:
