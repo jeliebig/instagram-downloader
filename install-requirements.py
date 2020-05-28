@@ -1,5 +1,6 @@
 import urllib.request
 import os
+import subprocess
 import platform
 import shutil
 
@@ -62,7 +63,7 @@ elif platform.system() == "Linux":
             gecko_here = True
             break
     print("Running 'sudo apt install firefox -y'")
-    os.system("sudo apt install firefox -y")
+    subprocess.call("sudo apt install firefox -y".split())
     print("Done.")
     if not gecko_here:
         print("Downloading latest geckodriver...")
@@ -74,7 +75,7 @@ elif platform.system() == "Linux":
         shutil.move(local_filename, "~/.local/bin/geckodriver.tar.gz")
         os.chdir("~/.local/bin")
         os.system("tar -xvzf geckodriver.tar.gz")
-        os.system("chmod +x geckodriver")
+        subprocess.call("sudo chmod +x " + os.path.normpath(home + "/" + "geckodriver"))
         os.remove("geckodriver.tar.gz")
         print("Successfully installed geckodriver to '~/.local/bin/geckodriver'")
         if not path_linux:
