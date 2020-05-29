@@ -172,20 +172,26 @@ def diff_history(history_file, name, plist, debug_read=False):
 
 def driver_startup(driver_visible=False, disable_login=False, driver_sleep=default_sleep,
                    use_creds="default", load_debug=False):
-    options = webdriver.FirefoxOptions()
-    options.headless = not driver_visible
-    driver = webdriver.Firefox(options=options)
+    try:
+        options = webdriver.FirefoxOptions()
+        options.headless = not driver_visible
+        driver = webdriver.Firefox(options=options)
+    except Exception:
+        return None
     if not disable_login:
         creds = load_json(config_creds, debug=load_debug)
         if use_creds not in creds.keys():
             print("Credentials not found. Please check the creds.json file.")
         else:
-            driver.get(main_url + "/accounts/login")
-            time.sleep(driver_sleep)
-            driver.find_element_by_name("username").send_keys(creds[use_creds]["username"])
-            driver.find_element_by_name("password").send_keys(creds[use_creds]["password"])
-            driver.find_element_by_name("password").submit()
-            time.sleep(driver_sleep)
+            try:
+                driver.get(main_url + "/accounts/login")
+                time.sleep(driver_sleep)
+                driver.find_element_by_name("username").send_keys(creds[use_creds]["username"])
+                driver.find_element_by_name("password").send_keys(creds[use_creds]["password"])
+                driver.find_element_by_name("password").submit()
+                time.sleep(driver_sleep)
+            except Exception:
+                return None
     return driver
 
 
@@ -198,15 +204,20 @@ def update_profile(history_file, name, post_list, debug_read_write=False):
                                       driver_visible=visible,
                                       driver_sleep=args.sleep,
                                       write_debug=debug_read_write, no_info=args.no_info)
-        history_json = load_json(history_fullpath, debug=debug_read_write)
-        if profile_name not in history_json.keys():
-            history_json[profile_name] = {}
-        if post not in history_json[profile_name].keys():
-            history_json[profile_name][post] = {}
-        history_json[profile_name][post] = post_results
-        write_json(history_file, history_json, debug=debug_read_write)
-        update_dict[name] = {}
-        update_dict[name][post] = post_results
+        if post_results is not None:
+            history_json = load_json(history_fullpath, debug=debug_read_write)
+            if profile_name not in history_json.keys():
+                history_json[profile_name] = {}
+            if post not in history_json[profile_name].keys():
+                history_json[profile_name][post] = {}
+            history_json[profile_name][post] = post_results
+            write_json(history_file, history_json, debug=debug_read_write)
+            update_dict[name] = {}
+            update_dict[name][post] = post_results
+        else:
+            if debug_read_write:
+                print("Detected crash in get_insta_post. Exiting...")
+            return None
     return update_dict
 
 
@@ -218,26 +229,64 @@ def get_insta_post(url, name, driver=None,
         options = webdriver.FirefoxOptions()
         options.headless = not driver_visible
         driver = webdriver.Firefox(options=options)
-    driver.get(url)
-    time.sleep(driver_sleep)
-    if driver.execute_script('return document.getElementsByClassName("JSZAJ  _3eoV-  IjCL9  WXPwG").length') == 0:
-        content_count = 1
-    else:
-        content_count = driver.execute_script(
-            'return document.getElementsByClassName("JSZAJ  _3eoV-  IjCL9  WXPwG")[0].childElementCount')
-    content_all = {}
-    if debug_download:
-        print("Starting post downloader with original name: ", name)
-        print("Got the following target URL: ", url)
-        print("Number of downloads expected from this post: ", content_count)
-    if int(content_count) > 1:
-        for i in range(content_count - 1):
-            try:
-                driver.execute_script('document.getElementsByClassName("  _6CZji ")[0].click()')
-            except Exception as e:
-                if debug_download:
-                    print("Error clicking button: ", e)
-            time.sleep(driver_sleep)
+    try:
+        driver.get(url)
+        time.sleep(driver_sleep)
+        if driver.execute_script('return document.getElementsByClassName("JSZAJ  _3eoV-  IjCL9  WXPwG").length') == 0:
+            content_count = 1
+        else:
+            content_count = driver.execute_script(
+                'return document.getElementsByClassName("JSZAJ  _3eoV-  IjCL9  WXPwG")[0].childElementCount')
+        content_all = {}
+        if debug_download:
+            print("Starting post downloader with original name: ", name)
+            print("Got the following target URL: ", url)
+            print("Number of downloads expected from this post: ", content_count)
+        if int(content_count) > 1:
+            for i in range(content_count - 1):
+                try:
+                    driver.execute_script('document.getElementsByClassName("  _6CZji ")[0].click()')
+                except Exception as e:
+                    if debug_download:
+                        print("Error clicking button: ", e)
+                time.sleep(driver_sleep)
+                content_dict = {"images": driver.find_elements_by_tag_name("img"),
+                                "videos": driver.find_elements_by_tag_name("video")}
+                for key in content_dict:
+                    for content in content_dict[key]:
+                        a_post = driver.find_element_by_xpath(
+                            "/html/body/div[1]/section/main/div/div/"
+                            "article/header/div[2]/div[1]/div[1]").find_elements_by_tag_name("a")
+                        insta_name = None
+                        for x in a_post:
+                            if "sqdOP yWX7d     _8A5w5   ZIAjV " == x.get_attribute("class"):
+                                insta_name = x.text
+                        if insta_name is None or insta_name != name or \
+                                content.get_attribute("class") in ["_6q-tv", "s4Iyt"]:
+                            continue
+                        if debug_download:
+                            print("Found post name: ", insta_name)
+                            print("Now inspecting: ", content.get_attribute("src"))
+                            print("Using key: ", key)
+                        icon_url = str(driver.find_element_by_tag_name("article").find_element_by_tag_name("header") \
+                                       .find_element_by_tag_name("img").get_attribute("src"))
+                        save_url = str(content.get_attribute("src"))
+                        time_post = datetime.datetime.strptime(driver.find_element_by_tag_name("time") \
+                                                               .get_attribute("datetime").split(".")[0],
+                                                               "%Y-%m-%dT%H:%M:%S")
+                        if driver.execute_script('return document.getElementsByTagName("h2").length') != 0:
+                            title = str(
+                                driver.execute_script(
+                                    'return document.getElementsByTagName("h2")[0].nextSibling.textContent'))
+                        else:
+                            title = "__no title__"
+                        content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title,
+                                        key]
+                        if save_url not in content_all.keys():
+                            if debug_download:
+                                print("Adding URL to download list: ", save_url)
+                            content_all[save_url] = content_list
+        else:
             content_dict = {"images": driver.find_elements_by_tag_name("img"),
                             "videos": driver.find_elements_by_tag_name("video")}
             for key in content_dict:
@@ -249,8 +298,8 @@ def get_insta_post(url, name, driver=None,
                     for x in a_post:
                         if "sqdOP yWX7d     _8A5w5   ZIAjV " == x.get_attribute("class"):
                             insta_name = x.text
-                    if insta_name is None or insta_name != name or \
-                            content.get_attribute("class") in ["_6q-tv", "s4Iyt"]:
+                    if insta_name is None or name != insta_name or content.get_attribute("class") in ["_6q-tv",
+                                                                                                      "s4Iyt"]:
                         continue
                     if debug_download:
                         print("Found post name: ", insta_name)
@@ -270,74 +319,44 @@ def get_insta_post(url, name, driver=None,
                         title = "__no title__"
                     content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title, key]
                     if save_url not in content_all.keys():
-                        if debug_download:
-                            print("Adding URL to download list: ", save_url)
                         content_all[save_url] = content_list
-    else:
-        content_dict = {"images": driver.find_elements_by_tag_name("img"),
-                        "videos": driver.find_elements_by_tag_name("video")}
-        for key in content_dict:
-            for content in content_dict[key]:
-                a_post = driver.find_element_by_xpath(
-                    "/html/body/div[1]/section/main/div/div/"
-                    "article/header/div[2]/div[1]/div[1]").find_elements_by_tag_name("a")
-                insta_name = None
-                for x in a_post:
-                    if "sqdOP yWX7d     _8A5w5   ZIAjV " == x.get_attribute("class"):
-                        insta_name = x.text
-                if insta_name is None or name != insta_name or content.get_attribute("class") in ["_6q-tv", "s4Iyt"]:
-                    continue
-                if debug_download:
-                    print("Found post name: ", insta_name)
-                    print("Now inspecting: ", content.get_attribute("src"))
-                    print("Using key: ", key)
-                icon_url = str(driver.find_element_by_tag_name("article").find_element_by_tag_name("header") \
-                               .find_element_by_tag_name("img").get_attribute("src"))
-                save_url = str(content.get_attribute("src"))
-                time_post = datetime.datetime.strptime(driver.find_element_by_tag_name("time") \
-                                                       .get_attribute("datetime").split(".")[0], "%Y-%m-%dT%H:%M:%S")
-                if driver.execute_script('return document.getElementsByTagName("h2").length') != 0:
-                    title = str(
-                        driver.execute_script('return document.getElementsByTagName("h2")[0].nextSibling.textContent'))
-                else:
-                    title = "__no title__"
-                content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title, key]
-                if save_url not in content_all.keys():
-                    content_all[save_url] = content_list
-    if not write_file:
+        if not write_file:
+            driver.quit()
+            return content_all
+        for saves in content_all.keys():
+            if debug_download:
+                print("Now working on: ", content_all[saves])
+            name = content_all[saves][0]
+            icon_url = content_all[saves][1]
+            save_url = content_all[saves][2]
+            time_post = content_all[saves][3].strftime("%Y-%m-%d_%H-%M-%S")
+            title = content_all[saves][4]
+            key = content_all[saves][5]
+            result_list = [name, main_url, icon_url, time_post, title, key, url, save_url]
+            file_title = title
+            file_profile = name
+            for badchar in replace_badfilename.keys():
+                file_title = file_title.replace(badchar, replace_badfilename[badchar])
+                file_profile = file_profile.replace(badchar, replace_badfilename[badchar])
+            local_filename, headers = urllib.request.urlretrieve(save_url)
+            file_path = file_path.replace("%title%", file_title) \
+                .replace("%upload_date%", time_post) \
+                .replace("%profile%", file_profile)
+            file_name = file_name.replace("%title%", file_title) \
+                .replace("%upload_date%", time_post) \
+                .replace("%profile%", file_profile)
+            file_name = file_name + local_filename.rsplit(".", maxsplit=1)[1]
+            os.makedirs(file_path, exist_ok=True)
+            full_path = os.path.normpath(file_path + "/" + file_name)
+            content_all[saves].append(full_path)
+            shutil.move(local_filename, full_path)
+            if not no_info:
+                write_json(full_path + ".info", {title.encode(): [s.encode() for s in result_list]}, debug=write_debug)
         driver.quit()
         return content_all
-    for saves in content_all.keys():
-        if debug_download:
-            print("Now working on: ", content_all[saves])
-        name = content_all[saves][0]
-        icon_url = content_all[saves][1]
-        save_url = content_all[saves][2]
-        time_post = content_all[saves][3].strftime("%Y-%m-%d_%H-%M-%S")
-        title = content_all[saves][4]
-        key = content_all[saves][5]
-        result_list = [name, main_url, icon_url, time_post, title, key, url, save_url]
-        file_title = title
-        file_profile = name
-        for badchar in replace_badfilename.keys():
-            file_title = file_title.replace(badchar, replace_badfilename[badchar])
-            file_profile = file_profile.replace(badchar, replace_badfilename[badchar])
-        local_filename, headers = urllib.request.urlretrieve(save_url)
-        file_path = file_path.replace("%title%", file_title) \
-            .replace("%upload_date%", time_post) \
-            .replace("%profile%", file_profile)
-        file_name = file_name.replace("%title%", file_title) \
-            .replace("%upload_date%", time_post) \
-            .replace("%profile%", file_profile)
-        file_name = file_name + local_filename.rsplit(".", maxsplit=1)[1]
-        os.makedirs(file_path, exist_ok=True)
-        full_path = os.path.normpath(file_path + "/" + file_name)
-        content_all[saves].append(full_path)
-        shutil.move(local_filename, full_path)
-        if not no_info:
-            write_json(full_path + ".info", {title.encode(): [s.encode() for s in result_list]}, debug=write_debug)
-    driver.quit()
-    return content_all
+    except Exception as e:
+        print("Exception in get_insta_post:", e)
+        return None
 
 
 def check_profile_url(url, driver, no_login=False, driver_sleep=default_sleep,
@@ -386,8 +405,13 @@ def check_profile_url(url, driver, no_login=False, driver_sleep=default_sleep,
         except Exception:
             pass
         if debug_download:
-            print("Removed watch after error occured in download_profile_url()")
+            print("Removed watch after error occured in check_profile_URL")
             print("Exception:", e)
+        return None
+    except Exception as e:
+        if debug_download:
+            print("Exception in check_profile_URL:", e)
+        return None
 
 
 def download_profile_url(url, name, driver, no_login=False, driver_sleep=default_sleep,
@@ -418,12 +442,18 @@ def download_profile_url(url, name, driver, no_login=False, driver_sleep=default
                         xpd = pd.find_elements_by_tag_name("a")
                         for post in reversed(xpd):
                             post_url = post.get_attribute("href")
-                            return_dict[post_url] = get_insta_post(post_url, name, write_file=write_file,
-                                                                   file_path=file_path, file_name=file_name,
-                                                                   debug_download=debug_download,
-                                                                   driver_visible=driver_visible,
-                                                                   driver_sleep=driver_sleep,
-                                                                   write_debug=write_debug, no_info=no_info)
+                            result = get_insta_post(post_url, name, write_file=write_file,
+                                                    file_path=file_path, file_name=file_name,
+                                                    debug_download=debug_download,
+                                                    driver_visible=driver_visible,
+                                                    driver_sleep=driver_sleep,
+                                                    write_debug=write_debug, no_info=no_info)
+                            if result is not None:
+                                return_dict[post_url] = result
+                            else:
+                                if debug_download:
+                                    print("Crash in get_insta_post detected. Exiting...")
+                                return None
                 else:
                     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             driver.quit()
@@ -442,8 +472,13 @@ def download_profile_url(url, name, driver, no_login=False, driver_sleep=default
         except Exception:
             pass
         if debug_download:
-            print("Removed watch after error occured in download_profile_url()")
+            print("Removed watch after error occured in download_profile_URL")
             print("Exception:", e)
+        return None
+    except Exception as e:
+        if debug_download:
+            print("Exception in download_profile_URL:", e)
+        return None
 
 
 cwd = os.getcwd()
@@ -571,22 +606,36 @@ if args.all:
                 print("Profile is a valid Instagram URL.")
                 print("Starting downloader process with Firefox...")
             profile_name = profile.split("/")[3]
-            profile_dict = download_profile_url(profile, profile_name,
-                                                driver_startup(driver_visible=visible,
-                                                               disable_login=args.no_login,
-                                                               driver_sleep=args.sleep,
-                                                               use_creds=args.creds,
-                                                               load_debug=debug_file),
-                                                no_login=args.no_login, driver_sleep=args.sleep,
-                                                file_path=args.filepath, file_name=args.filename,
-                                                write_debug=debug_file, no_info=args.no_info, write_file=not args.json,
-                                                debug_download=debug_output, driver_visible=visible)
-            if debug_file:
-                print("Finished downloader process.")
-
+            profile_driver = driver_startup(driver_visible=visible,
+                                            disable_login=args.no_login,
+                                            driver_sleep=args.sleep,
+                                            use_creds=args.creds,
+                                            load_debug=debug_file)
+            if profile_driver is not None:
+                profile_dict = download_profile_url(profile, profile_name, profile_driver,
+                                                    no_login=args.no_login, driver_sleep=args.sleep,
+                                                    file_path=args.filepath, file_name=args.filename,
+                                                    write_debug=debug_file, no_info=args.no_info,
+                                                    write_file=not args.json,
+                                                    debug_download=debug_output, driver_visible=visible)
+                if debug_file:
+                    print("Finished downloader process.")
+            else:
+                if debug_file:
+                    print("Could not finish driver_startup.")
+                profile_dict = None
             history = load_json(history_fullpath, debug=debug_file)
-            history[profile_name] = profile_dict
-            write_json(history_fullpath, history, debug=debug_file)
+            if profile_dict is not None:
+                history[profile_name] = profile_dict
+                write_json(history_fullpath, history, debug=debug_file)
+            else:
+                if debug_file:
+                    print("Download_profile_URL failed.")
+                if args.progress_file:
+                    if debug_file:
+                        print("Removing in_progress file...")
+                    os.remove(default_progressfile)
+                exit(1)
             json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
             if args.json and args.json_filename != "":
                 if debug_file:
@@ -612,22 +661,36 @@ if args.all:
                         print("Working on URL of file:", line)
                         print("Starting downloader process with Firefox...")
                     profile_name = line.split("/")[3]
-                    profile_dict = download_profile_url(line, profile_name,
-                                                        driver_startup(driver_visible=visible,
-                                                                       disable_login=args.no_login,
-                                                                       driver_sleep=args.sleep,
-                                                                       use_creds=args.creds,
-                                                                       load_debug=debug_file),
-                                                        no_login=args.no_login, driver_sleep=args.sleep,
-                                                        file_path=args.filepath, file_name=args.filename,
-                                                        write_debug=debug_file, no_info=args.no_info,
-                                                        write_file=not args.json,
-                                                        debug_download=debug_output, driver_visible=visible)
+                    profile_driver = driver_startup(driver_visible=visible,
+                                                    disable_login=args.no_login,
+                                                    driver_sleep=args.sleep,
+                                                    use_creds=args.creds,
+                                                    load_debug=debug_file)
+                    if profile_driver is not None:
+                        profile_dict = download_profile_url(line, profile_name, profile_driver,
+                                                            no_login=args.no_login, driver_sleep=args.sleep,
+                                                            file_path=args.filepath, file_name=args.filename,
+                                                            write_debug=debug_file, no_info=args.no_info,
+                                                            write_file=not args.json,
+                                                            debug_download=debug_output, driver_visible=visible)
+                    else:
+                        if debug_file:
+                            print("Could not finish driver_startup.")
+                        profile_dict = None
                     if debug_file:
                         print("Finished downloader process.")
 
                     history = load_json(history_fullpath, debug=debug_file)
-                    history[profile_name] = profile_dict
+                    if profile_dict is not None:
+                        history[profile_name] = profile_dict
+                    else:
+                        if debug_file:
+                            print("Download_profile_URL failed.")
+                        if args.progress_file:
+                            if debug_file:
+                                print("Removing in_progress file...")
+                            os.remove(default_progressfile)
+                        exit(1)
                     write_json(history_fullpath, history, debug=debug_file)
                     json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
                     if args.json and args.json_filename != "":
@@ -641,13 +704,13 @@ if args.all:
                 else:
                     if debug_output:
                         print("Ignoring wrong URL. File: '" + profile + "' Line: '" + line + "'")
-        if args.remove_profile:
-            try:
-                os.remove(profile)
-                if profile_num != 0:
-                    profile_num -= 1
-            except FileNotFoundError:
-                pass
+            if args.remove_profile:
+                try:
+                    os.remove(profile)
+                    if profile_num != 0:
+                        profile_num -= 1
+                except FileNotFoundError:
+                    pass
 elif args.update:
     if debug_file:
         print("Downloading only recent posts of the provided profiles...")
@@ -660,18 +723,32 @@ elif args.update:
                 print("Profile is a valid Instagram URL.")
                 print("Starting downloader process with Firefox...")
             profile_name = profile.split("/")[3]
-            profile_list = check_profile_url(profile,
-                                             driver_startup(driver_visible=visible,
-                                                            disable_login=args.no_login,
-                                                            driver_sleep=args.sleep,
-                                                            use_creds=args.creds,
-                                                            load_debug=debug_file),
-                                             no_login=args.no_login, driver_sleep=args.sleep,
-                                             debug_download=debug_output)
+            profile_driver = driver_startup(driver_visible=visible,
+                                            disable_login=args.no_login,
+                                            driver_sleep=args.sleep,
+                                            use_creds=args.creds,
+                                            load_debug=debug_file)
+            if profile_driver is not None:
+                profile_list = check_profile_url(profile, profile_driver,
+                                                 no_login=args.no_login, driver_sleep=args.sleep,
+                                                 debug_download=debug_output)
+            else:
+                if debug_file:
+                    print("Could not finish driver_startup.")
+                profile_list = None
             if debug_file:
                 print("Finished downloader process.")
 
-            profile_dict = update_profile(history_fullpath, profile_name, profile_list, debug_read_write=debug_file)
+            if profile_list is not None:
+                profile_dict = update_profile(history_fullpath, profile_name, profile_list, debug_read_write=debug_file)
+            else:
+                profile_dict = None
+            if profile_dict is None:
+                if args.progress_file:
+                    if debug_file:
+                        print("Removing in_progress file...")
+                    os.remove(default_progressfile)
+                exit(1)
             json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
             if args.json and args.json_filename != "":
                 if debug_file:
@@ -697,18 +774,32 @@ elif args.update:
                         print("Working on URL of file:", line)
                         print("Starting downloader process with Firefox...")
                     profile_name = line.split("/")[3]
-                    profile_list = check_profile_url(line,
-                                                     driver_startup(driver_visible=visible,
-                                                                    disable_login=args.no_login,
-                                                                    driver_sleep=args.sleep,
-                                                                    use_creds=args.creds,
-                                                                    load_debug=debug_file),
-                                                     no_login=args.no_login, driver_sleep=args.sleep,
-                                                     debug_download=debug_output)
+                    profile_driver = driver_startup(driver_visible=visible,
+                                                    disable_login=args.no_login,
+                                                    driver_sleep=args.sleep,
+                                                    use_creds=args.creds,
+                                                    load_debug=debug_file)
+                    if profile_driver is not None:
+                        profile_list = check_profile_url(line, profile_driver,
+                                                         no_login=args.no_login, driver_sleep=args.sleep,
+                                                         debug_download=debug_output)
+                    else:
+                        if debug_file:
+                            print("Could not finish driver_startup.")
+                        profile_list = None
                     if debug_file:
                         print("Finished downloader process.")
-
-                    profile_dict = update_profile(history_fullpath, profile_name, profile_list, debug_read_write=debug_file)
+                    if profile_list is not None:
+                        profile_dict = update_profile(history_fullpath, profile_name, profile_list,
+                                                      debug_read_write=debug_file)
+                    else:
+                        profile_dict = None
+                    if profile_dict is None:
+                        if args.progress_file:
+                            if debug_file:
+                                print("Removing in_progress file...")
+                            os.remove(default_progressfile)
+                        exit(1)
                     json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
                     if args.json and args.json_filename != "":
                         if debug_file:
@@ -721,13 +812,13 @@ elif args.update:
                 else:
                     if debug_output:
                         print("Ignoring wrong URL. File: '" + profile + "' Line: '" + line + "'")
-        if args.remove_profile:
-            try:
-                os.remove(profile)
-                if profile_num != 0:
-                    profile_num -= 1
-            except FileNotFoundError:
-                pass
+            if args.remove_profile:
+                try:
+                    os.remove(profile)
+                    if profile_num != 0:
+                        profile_num -= 1
+                except FileNotFoundError:
+                    pass
 
 if args.progress_file:
     if debug_file:
