@@ -26,7 +26,7 @@ replace_badfilename = {"/": "_", "\\": "_", "?": "_",
 def load_json(filename, debug=False):
     try:
         while os.path.isfile("read.lock"):
-            pass
+            time.sleep(1)
         with open("read.lock", "w") as file:
             file.write("locked reading")
         filename = os.path.normpath(filename)
@@ -65,7 +65,7 @@ def load_json(filename, debug=False):
 def write_json(filename, write_dict, debug=False, check=True):
     try:
         while os.path.isfile("write.lock"):
-            pass
+            time.sleep(1)
         with open("write.lock", "w") as file:
             file.write("locked writing")
         filename = os.path.normpath(filename)
@@ -586,7 +586,7 @@ if args.progress_file:
         if os.path.isfile(default_progressfile):
             print("Waiting until in_progress file is removed...")
     while os.path.isfile(default_progressfile):
-        pass
+        time.sleep(1)
     if debug_file:
         print("Writing in_progress file...")
     with open(default_progressfile, "w") as file:
