@@ -98,7 +98,7 @@ def write_json(filename, write_dict, check=True):
             logging.debug("Done.")
 
     except Exception as e:
-        logging.critical("Write failed. The following exception occurred: %s", e)
+        logging.exception("Write failed. The following exception occurred: %s", e)
         logging.debug("Removing lock...")
         os.remove("write.lock")
         logging.debug("Done.")
@@ -152,7 +152,7 @@ def driver_startup(driver_visible=False, disable_login=False, driver_sleep=defau
         options.headless = not driver_visible
         driver = webdriver.Firefox(options=options)
     except Exception as e:
-        logging.error("Could not start Firefox. The following exception occurred: %s", e)
+        logging.exception("Could not start Firefox. The following exception occurred: %s", e)
         return None
     if not disable_login:
         creds = load_json(config_creds)
@@ -167,7 +167,7 @@ def driver_startup(driver_visible=False, disable_login=False, driver_sleep=defau
                 driver.find_element_by_name("password").submit()
                 time.sleep(driver_sleep)
             except Exception as e:
-                logging.error("Could not login. The following exception occurred: %s", e)
+                logging.exception("Could not login. The following exception occurred: %s", e)
                 return None
     return driver
 
@@ -218,7 +218,7 @@ def get_insta_post(url, name, driver=None,
                 try:
                     driver.execute_script('document.getElementsByClassName("  _6CZji ")[0].click()')
                 except Exception as e:
-                    logging.error("Could not click next button. The following exception occurred: %s", e)
+                    logging.exception("Could not click next button. The following exception occurred: %s", e)
                 time.sleep(driver_sleep)
                 content_dict = {"images": driver.find_elements_by_tag_name("img"),
                                 "videos": driver.find_elements_by_tag_name("video")}
@@ -321,7 +321,7 @@ def get_insta_post(url, name, driver=None,
         driver.quit()
         return content_all
     except Exception as e:
-        logging.error("Downloading Insta post failed. The following exception occurred: %s", e)
+        logging.exception("Downloading Insta post failed. The following exception occurred: %s", e)
         return None
 
 
@@ -367,10 +367,10 @@ def check_profile_url(url, driver, no_login=False, driver_sleep=default_sleep):
             driver.quit()
         except Exception:
             pass
-        logging.error("Checking profile failed. The following exception occurred: %s", e)
+        logging.exception("Checking profile failed. The following exception occurred: %s", e)
         return None
     except Exception as e:
-        logging.error("Checking profile failed. The following exception occurred: %s", e)
+        logging.exception("Checking profile failed. The following exception occurred: %s", e)
         return None
 
 
@@ -426,10 +426,10 @@ def download_profile_url(url, name, driver, no_login=False, driver_sleep=default
             driver.quit()
         except Exception:
             pass
-        logging.error("Could not download profile. The following exception occurred: %s", e)
+        logging.exception("Could not download profile. The following exception occurred: %s", e)
         return None
     except Exception as e:
-        logging.error("Could not download profile. The following exception occurred: %s", e)
+        logging.exception("Could not download profile. The following exception occurred: %s", e)
         return None
 
 
