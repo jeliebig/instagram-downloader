@@ -334,6 +334,13 @@ def check_profile_url(url, driver, no_login=False, driver_sleep=default_sleep):
             one_left = False
             while not one_left:
                 time.sleep(driver_sleep)
+                if driver.find_elements_by_tag_name("h2")[0].get_attribute() == "MCXLF":
+                    logging.warning("Profile does not exist: %s", url)
+                    try:
+                        driver.quit()
+                    except Exception:
+                        pass
+                    return "404"
                 article = driver.find_element_by_tag_name("article")
                 divs = article.find_elements_by_tag_name("div")
                 test_load = True
@@ -385,6 +392,13 @@ def download_profile_url(url, name, driver, no_login=False, driver_sleep=default
             one_left = False
             while not one_left:
                 time.sleep(driver_sleep)
+                if driver.find_elements_by_tag_name("h2")[0].get_attribute() == "MCXLF":
+                    logging.warning("Profile does not exist: %s", url)
+                    try:
+                        driver.quit()
+                    except Exception:
+                        pass
+                    return "404"
                 article = driver.find_element_by_tag_name("article")
                 divs = article.find_elements_by_tag_name("div")
                 test_load = True
@@ -592,9 +606,13 @@ if args.all:
                 logging.critical("Could not finish driver_startup.")
                 profile_dict = None
             history = load_json(history_fullpath)
-            if profile_dict is not None:
+            if profile_dict is not None and profile_dict is not str:
                 history[profile_name] = profile_dict
                 write_json(history_fullpath, history)
+            elif profile_dict is str:
+                if profile_dict == "404":
+                    logging.warning("Profile not found.")
+                    continue
             else:
                 logging.error("Download_profile_URL with profile: %s failed.", profile)
                 if args.progress_file:
@@ -638,8 +656,18 @@ if args.all:
                         profile_dict = None
 
                     history = load_json(history_fullpath)
-                    if profile_dict is not None:
+                    if profile_dict is not None and profile_dict is not str:
                         history[profile_name] = profile_dict
+                    elif profile_dict is str:
+                        if profile_dict == "404":
+                            logging.warning("Profile not found.")
+                            newtext = text.copy()
+                            newtext.remove(line)
+                            os.remove(profile)
+                            with open(profile, "w") as newfile:
+                                for x in newtext:
+                                    newfile.write(x + "\n")
+                            continue
                     else:
                         logging.error("Download_profile_URL failed.")
                         if args.progress_file:
@@ -685,8 +713,12 @@ elif args.update:
                 logging.critical("Could not finish driver_startup.")
                 profile_list = None
 
-            if profile_list is not None:
+            if profile_list is not None and profile_list is not str:
                 profile_dict = update_profile(history_fullpath, profile_name, profile_list)
+            elif profile_list is str:
+                if profile_list == "404":
+                    logging.warning("Profile not found.")
+                    continue
             else:
                 profile_dict = None
             if profile_dict is None:
@@ -726,9 +758,19 @@ elif args.update:
                     else:
                         logging.critical("Could not finish driver_startup.")
                         profile_list = None
-                    if profile_list is not None:
+                    if profile_list is not None and profile_list is not str:
                         profile_dict = update_profile(history_fullpath, profile_name, profile_list)
                         logging.debug("Finished update process.")
+                    elif profile_list is str:
+                        if profile_dict == "404":
+                            logging.warning("Profile not found.")
+                            newtext = text.copy()
+                            newtext.remove(line)
+                            os.remove(profile)
+                            with open(profile, "w") as newfile:
+                                for x in newtext:
+                                    newfile.write(x + "\n")
+                            continue
                     else:
                         profile_dict = None
                     if profile_dict is None:
