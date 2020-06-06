@@ -660,13 +660,14 @@ if args.all:
                         history[profile_name] = profile_dict
                     elif profile_dict is str:
                         if profile_dict == "404":
-                            logging.warning("Profile not found.")
+                            logging.warning("Profile not found. Editing file...")
                             newtext = text.copy()
                             newtext.remove(line)
                             os.remove(profile)
                             with open(profile, "w") as newfile:
                                 for x in newtext:
                                     newfile.write(x + "\n")
+                            logging.debug("New file created.")
                             continue
                     else:
                         logging.error("Download_profile_URL failed.")
@@ -763,13 +764,14 @@ elif args.update:
                         logging.debug("Finished update process.")
                     elif profile_list is str:
                         if profile_dict == "404":
-                            logging.warning("Profile not found.")
+                            logging.warning("Profile not found. Editing file...")
                             newtext = text.copy()
                             newtext.remove(line)
                             os.remove(profile)
                             with open(profile, "w") as newfile:
                                 for x in newtext:
                                     newfile.write(x + "\n")
+                            logging.debug("New file created.")
                             continue
                     else:
                         profile_dict = None
