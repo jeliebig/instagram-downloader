@@ -539,12 +539,16 @@ if debug_output:
     # noinspection PyArgumentList
     logging.basicConfig(level=logging.DEBUG if debug_file else logging.INFO,
                         format="%(asctime)s [%(levelname)s] (%(funcName)s): %(message)s",
-                        handlers=[logging.StreamHandler(), logging.FileHandler(filename=config_logfile, mode="a")])
+                        handlers=[logging.StreamHandler(),
+                                  logging.handlers.RotatingFileHandler(filename=config_logfile, mode="a",
+                                                                       maxbytes=5000000, backupCount=3)])
 else:
     # noinspection PyArgumentList
     logging.basicConfig(level=logging.ERROR,
                         format="%(asctime)s [%(levelname)s] (%(funcName)s): %(message)s",
-                        handlers=[logging.StreamHandler(), logging.FileHandler(filename=config_logfile, mode="a")])
+                        handlers=[logging.StreamHandler(),
+                                  logging.handlers.RotatingFileHandler(filename=config_logfile, mode="a",
+                                                                       maxbytes=5000000, backupCount=3)])
 
 history_fullpath = args.history_path + "/" + config_history
 os.makedirs(args.history_path, exist_ok=True)
