@@ -6,10 +6,12 @@ import selenium.common.exceptions
 import argparse
 import shutil
 import time
+import logging
 import json
 import os
 
 main_url = "https://www.instagram.com"
+config_logfile = "insta-downloader.log"
 config_creds = "config/creds.json"
 config_history = "insta_history.json"
 default_sleep = 2
@@ -23,46 +25,39 @@ replace_badfilename = {"/": "_", "\\": "_", "?": "_",
                        ">": "_", ".": "_", "&": "-and-", ",": "_", " ": "-"}
 
 
-def load_json(filename, debug=False):
+def load_json(filename):
     try:
         while os.path.isfile("read.lock"):
             time.sleep(1)
         with open("read.lock", "w") as file:
             file.write("locked reading")
         filename = os.path.normpath(filename)
-        if debug:
-            print("Opening json file: ", filename)
+        logging.debug("Opening json file: %s", filename)
         if ".json" in filename:
             filename = filename.split(".json")[0]
         if os.path.isfile(filename + ".json"):
             with open(filename + ".json", "r") as file:
                 text = json.load(file)
-            if debug:
-                print("Returning full dict.")
-                print("Removing lock...")
+            logging.debug("Returning full dict.")
+            logging.debug("Removing lock...")
             os.remove("read.lock")
-            if debug:
-                print("Done.")
+            logging.debug("Done.")
             return text
         else:
-            if debug:
-                print("File not found. Returning empty dict.")
-                print("Removing lock...")
+            logging.warning("File: %s not found. Returning empty dict.", filename)
+            logging.debug("Removing lock...")
             os.remove("read.lock")
-            if debug:
-                print("Done.")
+            logging.debug("Done.")
             return {}
     except json.JSONDecodeError:
-        if debug:
-            print("File corrupted. Returning empty dict.")
-            print("Removing lock...")
+        logging.warning("File: %s corrupted. Returning empty dict.", filename)
+        logging.debug("Removing lock...")
         os.remove("read.lock")
-        if debug:
-            print("Done.")
+        logging.debug("Done.")
         return {}
 
 
-def write_json(filename, write_dict, debug=False, check=True):
+def write_json(filename, write_dict, check=True):
     try:
         while os.path.isfile("write.lock"):
             time.sleep(1)
@@ -70,62 +65,46 @@ def write_json(filename, write_dict, debug=False, check=True):
             file.write("locked writing")
         filename = os.path.normpath(filename)
         if check:
-            if debug:
-                print("Comparing dicts...")
-            compare = load_json(filename, debug=debug)
+            logging.debug("Comparing dicts...")
+            compare = load_json(filename)
         else:
             compare = None
         if ".json" in filename:
             filename = filename.split(".json")[0]
         if compare == write_dict:
-            if debug:
-                print("No changes. Not writing file.")
-                print("Removing lock...")
+            logging.debug("No changes. Not writing file.")
+            logging.debug("Removing lock...")
             os.remove("write.lock")
-            if debug:
-                print("Done.")
+            logging.debug("Done.")
         else:
-            if debug:
-                print("Changes found. Writing file: ", filename)
+            logging.debug("Changes found. Writing file: %s", filename)
             with open(filename + ".json.1", "w") as file:
                 json.dump(write_dict, file)
-            if debug:
-                print("Write to dummy complete.")
+            logging.debug("Write to dummy complete.")
             if os.path.isfile(filename + ".json"):
-                if debug:
-                    print("Creating backup file...")
+                logging.debug("Creating backup file...")
                 shutil.copy(filename + ".json", filename + ".json.bak")
-                if debug:
-                    print("Done.")
-            if debug:
-                print("Now changing original file...")
+                logging.debug("Done.")
+            logging.debug("Now changing original file...")
             shutil.move(filename + ".json.1", filename + ".json")
-            if debug:
-                print("Done.")
+            logging.debug("Done.")
             if os.path.isfile(filename + ".json.bak"):
-                if debug:
-                    print("Removing backup...")
+                logging.debug("Removing backup...")
                 os.remove(filename + ".json.bak")
-                if debug:
-                    print("Done.")
-            if debug:
-                print("Write complete.")
-                print("Removing lock...")
+                logging.debug("Done.")
+            logging.debug("Write complete.")
+            logging.debug("Removing lock...")
             os.remove("write.lock")
-            if debug:
-                print("Done.")
+            logging.debug("Done.")
 
     except Exception as e:
-        if debug:
-            print("Write failed.")
-            print(e)
-            print("Removing lock...")
+        logging.critical("Write failed. The following exception occurred: %s", e)
+        logging.debug("Removing lock...")
         os.remove("write.lock")
-        if debug:
-            print("Done.")
+        logging.debug("Done.")
 
 
-def info_profile(profile, verbose=False, filename=""):
+def info_profile(profile, filename=""):
     keylist = ["username", "icon_url", "save_url", "time_post", "title", "type", "stored_path"]
     if filename != "":
         if ".json" in filename:
@@ -134,32 +113,28 @@ def info_profile(profile, verbose=False, filename=""):
             filename += "-"
         filename += "-(%user%)-(%post_url%)"
     for user in profile.keys():
-        if verbose:
-            print("Processing information about user:", user)
+        logging.info("Processing information about user: %s", user)
         for post_url in profile[user]:
             print_dict = {user: {}}
             if post_url not in print_dict[user].keys():
                 print_dict[user][post_url] = {}
-            if verbose:
-                print("[" + user + "]: downloaded post URL: " + post_url)
+            logging.info("[%s]: downloading post URL: %s", user, post_url)
             for save_url in profile[user][post_url].keys():
                 if save_url not in print_dict[user][post_url]:
                     print_dict[user][post_url][save_url] = {}
-                    if verbose:
-                        print("List of saved URL:", profile[user][post_url][save_url])
+                    logging.debug("List of saved URL: %s", profile[user][post_url][save_url])
                 for obj in range(len(profile[user][post_url][save_url])):
                     print_dict[user][post_url][save_url][keylist[obj]] = profile[user][post_url][save_url][obj]
             if filename != "":
                 write_json(filename.replace("%user%", user).replace("%post_url%", post_url.split("/")[4]),
-                           print_dict, check=False, debug=verbose)
+                           print_dict, check=False)
             else:
                 print(json.dumps(print_dict))
-        if verbose:
-            print("Finished processing information about user:", user)
+        logging.info("Finished processing information about user: %s", user)
 
 
-def diff_history(history_file, name, plist, debug_read=False):
-    history_json = load_json(history_file, debug=debug_read)
+def diff_history(history_file, name, plist):
+    history_json = load_json(history_file)
     if name in history_json.keys():
         return_list = []
         for post_url in plist:
@@ -171,17 +146,18 @@ def diff_history(history_file, name, plist, debug_read=False):
 
 
 def driver_startup(driver_visible=False, disable_login=False, driver_sleep=default_sleep,
-                   use_creds="default", load_debug=False):
+                   use_creds="default"):
     try:
         options = webdriver.FirefoxOptions()
         options.headless = not driver_visible
         driver = webdriver.Firefox(options=options)
-    except Exception:
+    except Exception as e:
+        logging.error("Could not start Firefox. The following exception occurred: %s", e)
         return None
     if not disable_login:
-        creds = load_json(config_creds, debug=load_debug)
+        creds = load_json(config_creds)
         if use_creds not in creds.keys():
-            print("Credentials not found. Please check the creds.json file.")
+            logging.error("Credentials not found. Please check the creds.json file.")
         else:
             try:
                 driver.get(main_url + "/accounts/login")
@@ -190,41 +166,37 @@ def driver_startup(driver_visible=False, disable_login=False, driver_sleep=defau
                 driver.find_element_by_name("password").send_keys(creds[use_creds]["password"])
                 driver.find_element_by_name("password").submit()
                 time.sleep(driver_sleep)
-            except Exception:
+            except Exception as e:
+                logging.error("Could not login. The following exception occurred: %s", e)
                 return None
     return driver
 
 
-def update_profile(history_file, name, post_list, debug_read_write=False):
+def update_profile(history_file, name, post_list):
     update_dict = {}
-    for post in diff_history(history_file, name, post_list, debug_read=debug_read_write):
+    for post in diff_history(history_file, name, post_list):
         post_results = get_insta_post(post, name, write_file=not args.json,
                                       file_path=args.filepath, file_name=args.filename,
-                                      debug_download=debug_output,
-                                      driver_visible=visible,
-                                      driver_sleep=args.sleep,
-                                      write_debug=debug_read_write, no_info=args.no_info)
+                                      driver_visible=visible, driver_sleep=args.sleep, no_info=args.no_info)
         if post_results is not None:
-            history_json = load_json(history_fullpath, debug=debug_read_write)
+            history_json = load_json(history_fullpath)
             if profile_name not in history_json.keys():
                 history_json[profile_name] = {}
             if post not in history_json[profile_name].keys():
                 history_json[profile_name][post] = {}
             history_json[profile_name][post] = post_results
-            write_json(history_file, history_json, debug=debug_read_write)
+            write_json(history_file, history_json)
             update_dict[name] = {}
             update_dict[name][post] = post_results
         else:
-            if debug_read_write:
-                print("Detected crash in get_insta_post. Exiting...")
+            logging.error("Detected crash in get_insta_post. Exiting...")
             return None
     return update_dict
 
 
 def get_insta_post(url, name, driver=None,
                    write_file=True, file_path=default_filepath, file_name=default_filename,
-                   debug_download=False, driver_visible=True, driver_sleep=default_sleep,
-                   write_debug=False, no_info=False):
+                   driver_visible=True, driver_sleep=default_sleep, no_info=False):
     if not driver:
         options = webdriver.FirefoxOptions()
         options.headless = not driver_visible
@@ -238,17 +210,15 @@ def get_insta_post(url, name, driver=None,
             content_count = driver.execute_script(
                 'return document.getElementsByClassName("JSZAJ  _3eoV-  IjCL9  WXPwG")[0].childElementCount')
         content_all = {}
-        if debug_download:
-            print("Starting post downloader with original name: ", name)
-            print("Got the following target URL: ", url)
-            print("Number of downloads expected from this post: ", content_count)
+        logging.info("Starting post downloader with original name: %s", name)
+        logging.debug("Got the following target URL: %s", url)
+        logging.debug("Number of downloads expected from this post: %s", content_count)
         if int(content_count) > 1:
             for i in range(content_count - 1):
                 try:
                     driver.execute_script('document.getElementsByClassName("  _6CZji ")[0].click()')
                 except Exception as e:
-                    if debug_download:
-                        print("Error clicking button: ", e)
+                    logging.error("Could not click next button. The following exception occurred: %s", e)
                 time.sleep(driver_sleep)
                 content_dict = {"images": driver.find_elements_by_tag_name("img"),
                                 "videos": driver.find_elements_by_tag_name("video")}
@@ -264,10 +234,9 @@ def get_insta_post(url, name, driver=None,
                         if insta_name is None or insta_name != name or \
                                 content.get_attribute("class") in ["_6q-tv", "s4Iyt"]:
                             continue
-                        if debug_download:
-                            print("Found post name: ", insta_name)
-                            print("Now inspecting: ", content.get_attribute("src"))
-                            print("Using key: ", key)
+                        logging.debug("Found post name: %s", insta_name)
+                        logging.debug("Now inspecting: %s", content.get_attribute("src"))
+                        logging.debug("Using key: %s", key)
                         icon_url = str(driver.find_element_by_tag_name("article").find_element_by_tag_name("header") \
                                        .find_element_by_tag_name("img").get_attribute("src"))
                         save_url = str(content.get_attribute("src"))
@@ -283,8 +252,7 @@ def get_insta_post(url, name, driver=None,
                         content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title,
                                         key]
                         if save_url not in content_all.keys():
-                            if debug_download:
-                                print("Adding URL to download list: ", save_url)
+                            logging.debug("Adding URL to download list: ", save_url)
                             content_all[save_url] = content_list
         else:
             content_dict = {"images": driver.find_elements_by_tag_name("img"),
@@ -301,10 +269,9 @@ def get_insta_post(url, name, driver=None,
                     if insta_name is None or name != insta_name or content.get_attribute("class") in ["_6q-tv",
                                                                                                       "s4Iyt"]:
                         continue
-                    if debug_download:
-                        print("Found post name: ", insta_name)
-                        print("Now inspecting: ", content.get_attribute("src"))
-                        print("Using key: ", key)
+                    logging.debug("Found post name: %s", insta_name)
+                    logging.debug("Now inspecting: %s", content.get_attribute("src"))
+                    logging.debug("Using key: %s", key)
                     icon_url = str(driver.find_element_by_tag_name("article").find_element_by_tag_name("header") \
                                    .find_element_by_tag_name("img").get_attribute("src"))
                     save_url = str(content.get_attribute("src"))
@@ -324,8 +291,7 @@ def get_insta_post(url, name, driver=None,
             driver.quit()
             return content_all
         for saves in content_all.keys():
-            if debug_download:
-                print("Now working on: ", content_all[saves])
+            logging.debug("Now working on: ", content_all[saves])
             name = content_all[saves][0]
             icon_url = content_all[saves][1]
             save_url = content_all[saves][2]
@@ -351,16 +317,15 @@ def get_insta_post(url, name, driver=None,
             content_all[saves].append(full_path)
             shutil.move(local_filename, full_path)
             if not no_info:
-                write_json(full_path + ".info", {title.encode(): [s.encode() for s in result_list]}, debug=write_debug)
+                write_json(full_path + ".info", {title.encode(): [s.encode() for s in result_list]})
         driver.quit()
         return content_all
     except Exception as e:
-        print("Exception in get_insta_post:", e)
+        logging.error("Downloading Insta post failed. The following exception occurred: %s", e)
         return None
 
 
-def check_profile_url(url, driver, no_login=False, driver_sleep=default_sleep,
-                      debug_download=False):
+def check_profile_url(url, driver, no_login=False, driver_sleep=default_sleep):
     try:
         if url.startswith(main_url):
             return_list = []
@@ -391,32 +356,27 @@ def check_profile_url(url, driver, no_login=False, driver_sleep=default_sleep,
                     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             driver.quit()
             if not one_left:
-                if debug_download:
-                    print("Page seems to be broken. URL: " + url)
+                logging.error("Page seems to be broken. URL: %s", url)
             return return_list
         else:
-            if debug_download:
-                print("Not an Instagram URL! Did someone change the file?")
-                print("Shutting down in order to prevent further damage.")
+            logging.critical("Not an Instagram URL! Did someone change the file? "
+                             "Shutting down to prevent further damage.")
             exit(2)
     except selenium.common.exceptions.WebDriverException as e:
         try:
             driver.quit()
         except Exception:
             pass
-        if debug_download:
-            print("Removed watch after error occured in check_profile_URL")
-            print("Exception:", e)
+        logging.error("Checking profile failed. The following exception occurred: %s", e)
         return None
     except Exception as e:
-        if debug_download:
-            print("Exception in check_profile_URL:", e)
+        logging.error("Checking profile failed. The following exception occurred: %s", e)
         return None
 
 
 def download_profile_url(url, name, driver, no_login=False, driver_sleep=default_sleep,
                          file_path=default_filepath, file_name=default_filename, write_file=True, no_info=False,
-                         write_debug=False, debug_download=False, driver_visible=False):
+                         driver_visible=False):
     try:
         if url.startswith(main_url):
             return_dict = {}
@@ -444,40 +404,32 @@ def download_profile_url(url, name, driver, no_login=False, driver_sleep=default
                             post_url = post.get_attribute("href")
                             result = get_insta_post(post_url, name, write_file=write_file,
                                                     file_path=file_path, file_name=file_name,
-                                                    debug_download=debug_download,
                                                     driver_visible=driver_visible,
-                                                    driver_sleep=driver_sleep,
-                                                    write_debug=write_debug, no_info=no_info)
+                                                    driver_sleep=driver_sleep, no_info=no_info)
                             if result is not None:
                                 return_dict[post_url] = result
                             else:
-                                if debug_download:
-                                    print("Crash in get_insta_post detected. Exiting...")
+                                logging.error("Crash in get_insta_post detected. Exiting...")
                                 return None
                 else:
                     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             driver.quit()
             if not one_left:
-                if debug_download:
-                    print("Page seems to be broken. URL: " + url)
+                logging.error("Page seems to be broken. URL: %s", url)
             return return_dict
         else:
-            if debug_download:
-                print("Not an Instagram URL! Did someone change the file?")
-                print("Shutting down in order to prevent further damage.")
+            logging.critical("Not an Instagram URL! Did someone change the file? "
+                             "Shutting down to prevent further damage.")
             exit(2)
     except selenium.common.exceptions.WebDriverException as e:
         try:
             driver.quit()
         except Exception:
             pass
-        if debug_download:
-            print("Removed watch after error occured in download_profile_URL")
-            print("Exception:", e)
+        logging.error("Could not download profile. The following exception occurred: %s", e)
         return None
     except Exception as e:
-        if debug_download:
-            print("Exception in download_profile_URL:", e)
+        logging.error("Could not download profile. The following exception occurred: %s", e)
         return None
 
 
@@ -578,249 +530,218 @@ visible = args.verbose >= 3
 debug_file = args.verbose >= 2
 debug_output = args.verbose >= 1
 
+if debug_output:
+    logging.basicConfig(filename=config_logfile, level=logging.DEBUG if debug_file else logging.INFO,
+                        format="%(asctime)s [%(levelname)s] (%(asctime)s): %(message)s", filemode="a")
+else:
+    logging.basicConfig(filename=config_logfile, level=logging.ERROR,
+                        format="%(asctime)s [%(levelname)s] (%(asctime)s): %(message)s", filemode="a")
+
 history_fullpath = args.history_path + "/" + config_history
 os.makedirs(args.history_path, exist_ok=True)
+
+logging.debug("Starting insta-downloader.py...")
+logging.debug("Starting to process args now.")
 
 if args.progress_file:
     if debug_output:
         if os.path.isfile(default_progressfile):
-            print("Waiting until in_progress file is removed...")
+            logging.info("Waiting until in_progress file is removed...")
     while os.path.isfile(default_progressfile):
         time.sleep(1)
-    if debug_file:
-        print("Writing in_progress file...")
+    logging.debug("Writing in_progress file.")
     with open(default_progressfile, "w") as file:
         file.write("")
-    if debug_output:
-        print("Starting execution...")
+    logging.info("Starting execution now.")
 
 if args.all:
-    if debug_file:
-        print("Downloading every post of the provided profiles...")
+    logging.debug("Downloading every post of the provided profiles...")
     for profile_num in range(len(args.profiles)):
         profile = args.profiles[profile_num]
-        if debug_file:
-            print("Now working on profile:", profile)
+        logging.debug("Now working on profile: %s", profile)
         if profile.startswith(main_url):
-            if debug_file:
-                print("Profile is a valid Instagram URL.")
-                print("Starting downloader process with Firefox...")
+            logging.debug("Profile is a valid Instagram URL.")
+            logging.debug("Starting download process with Firefox.")
             profile_name = profile.split("/")[3]
             profile_driver = driver_startup(driver_visible=visible,
                                             disable_login=args.no_login,
                                             driver_sleep=args.sleep,
-                                            use_creds=args.creds,
-                                            load_debug=debug_file)
+                                            use_creds=args.creds)
             if profile_driver is not None:
                 profile_dict = download_profile_url(profile, profile_name, profile_driver,
                                                     no_login=args.no_login, driver_sleep=args.sleep,
                                                     file_path=args.filepath, file_name=args.filename,
-                                                    write_debug=debug_file, no_info=args.no_info,
-                                                    write_file=not args.json,
-                                                    debug_download=debug_output, driver_visible=visible)
-                if debug_file:
-                    print("Finished downloader process.")
+                                                    no_info=args.no_info, write_file=not args.json,
+                                                    driver_visible=visible)
+                logging.debug("Finished download process.")
             else:
-                if debug_file:
-                    print("Could not finish driver_startup.")
+                logging.critical("Could not finish driver_startup.")
                 profile_dict = None
-            history = load_json(history_fullpath, debug=debug_file)
+            history = load_json(history_fullpath)
             if profile_dict is not None:
                 history[profile_name] = profile_dict
-                write_json(history_fullpath, history, debug=debug_file)
+                write_json(history_fullpath, history)
             else:
-                if debug_file:
-                    print("Download_profile_URL failed.")
+                logging.error("Download_profile_URL with profile: %s failed.", profile)
                 if args.progress_file:
-                    if debug_file:
-                        print("Removing in_progress file...")
+                    logging.debug("Removing in_progress file...")
                     os.remove(default_progressfile)
                 exit(1)
             json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
             if args.json and args.json_filename != "":
-                if debug_file:
-                    print("Starting to create json_file")
-                info_profile({profile_name: profile_dict}, filename=json_path, verbose=debug_file)
+                logging.debug("Creating json_file...")
+                info_profile({profile_name: profile_dict}, filename=json_path)
             elif args.json and args.json_filename == "":
-                if debug_file:
-                    print("Starting to create json output")
-                info_profile({profile_name: profile_dict}, filename=json_path, verbose=debug_file)
+                logging.debug("Creating json output...")
+                info_profile({profile_name: profile_dict}, filename=json_path)
         else:
             profile = os.path.normpath(cwd + "/" + profile)
-            if debug_file:
-                print("Assuming profile is a file:", profile)
+            logging.debug("Assuming profile is a file: %s", profile)
             try:
                 with open(profile, "r") as file:
                     text = [x.replace("\n", "") for x in file.readlines()]
             except FileNotFoundError:
-                print("Error: The following file does not exist:", profile)
+                logging.error("The following file does not exist: %s", profile)
                 text = []
             for line in text:
                 if line.startswith(main_url):
-                    if debug_file:
-                        print("Working on URL of file:", line)
-                        print("Starting downloader process with Firefox...")
+                    logging.debug("Working on URL of file: %s", line)
+                    logging.debug("Starting download process with Firefox.")
                     profile_name = line.split("/")[3]
                     profile_driver = driver_startup(driver_visible=visible,
                                                     disable_login=args.no_login,
                                                     driver_sleep=args.sleep,
-                                                    use_creds=args.creds,
-                                                    load_debug=debug_file)
+                                                    use_creds=args.creds)
                     if profile_driver is not None:
                         profile_dict = download_profile_url(line, profile_name, profile_driver,
                                                             no_login=args.no_login, driver_sleep=args.sleep,
                                                             file_path=args.filepath, file_name=args.filename,
-                                                            write_debug=debug_file, no_info=args.no_info,
-                                                            write_file=not args.json,
-                                                            debug_download=debug_output, driver_visible=visible)
+                                                            no_info=args.no_info, write_file=not args.json,
+                                                            driver_visible=visible)
+                        logging.debug("Finished download process.")
                     else:
-                        if debug_file:
-                            print("Could not finish driver_startup.")
+                        logging.critical("Could not finish driver_startup.")
                         profile_dict = None
-                    if debug_file:
-                        print("Finished downloader process.")
 
-                    history = load_json(history_fullpath, debug=debug_file)
+                    history = load_json(history_fullpath)
                     if profile_dict is not None:
                         history[profile_name] = profile_dict
                     else:
-                        if debug_file:
-                            print("Download_profile_URL failed.")
+                        logging.error("Download_profile_URL failed.")
                         if args.progress_file:
-                            if debug_file:
-                                print("Removing in_progress file...")
+                            logging.debug("Removing in_progress file...")
                             os.remove(default_progressfile)
                         exit(1)
-                    write_json(history_fullpath, history, debug=debug_file)
+                    write_json(history_fullpath, history)
                     json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
                     if args.json and args.json_filename != "":
-                        if debug_file:
-                            print("Starting to create json_file")
-                        info_profile({profile_name: profile_dict}, filename=json_path, verbose=debug_file)
+                        logging.debug("Creating json_file...")
+                        info_profile({profile_name: profile_dict}, filename=json_path)
                     elif args.json and args.json_filename == "":
-                        if debug_file:
-                            print("Starting to create json output")
-                        info_profile({profile_name: profile_dict}, filename=json_path, verbose=debug_file)
+                        logging.debug("Creating json output...")
+                        info_profile({profile_name: profile_dict}, filename=json_path)
                 else:
-                    if debug_output:
-                        print("Ignoring wrong URL. File: '" + profile + "' Line: '" + line + "'")
+                    logging.warning("Ignoring wrong URL. File: '%s' Line: '%s'", profile, line)
             if args.remove_profile:
                 try:
+                    logging.debug("Removing profile...")
                     os.remove(profile)
                     if profile_num != 0:
                         profile_num -= 1
                 except FileNotFoundError:
-                    pass
+                    logging.warning("Could not remove profile. File not found: %s", profile)
 elif args.update:
-    if debug_file:
-        print("Downloading only recent posts of the provided profiles...")
+    logging.debug("Downloading only recent posts of the provided profiles...")
     for profile_num in range(len(args.profiles)):
         profile = args.profiles[profile_num]
-        if debug_file:
-            print("Now working on profile:", profile)
+        logging.debug("Now working on profile: %s", profile)
         if profile.startswith(main_url):
-            if debug_file:
-                print("Profile is a valid Instagram URL.")
-                print("Starting downloader process with Firefox...")
+            logging.debug("Profile is a valid Instagram URL.")
+            logging.debug("Starting download process with Firefox...")
             profile_name = profile.split("/")[3]
             profile_driver = driver_startup(driver_visible=visible,
                                             disable_login=args.no_login,
                                             driver_sleep=args.sleep,
-                                            use_creds=args.creds,
-                                            load_debug=debug_file)
+                                            use_creds=args.creds)
             if profile_driver is not None:
                 profile_list = check_profile_url(profile, profile_driver,
-                                                 no_login=args.no_login, driver_sleep=args.sleep,
-                                                 debug_download=debug_output)
+                                                 no_login=args.no_login, driver_sleep=args.sleep)
+                logging.debug("Finished download process.")
             else:
-                if debug_file:
-                    print("Could not finish driver_startup.")
+                logging.critical("Could not finish driver_startup.")
                 profile_list = None
-            if debug_file:
-                print("Finished downloader process.")
 
             if profile_list is not None:
-                profile_dict = update_profile(history_fullpath, profile_name, profile_list, debug_read_write=debug_file)
+                profile_dict = update_profile(history_fullpath, profile_name, profile_list)
             else:
                 profile_dict = None
             if profile_dict is None:
                 if args.progress_file:
-                    if debug_file:
-                        print("Removing in_progress file...")
+                    logging.debug("Removing in_progress file...")
                     os.remove(default_progressfile)
                 exit(1)
             json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
             if args.json and args.json_filename != "":
-                if debug_file:
-                    print("Starting to create json_file")
-                info_profile({profile_name: profile_dict}, filename=json_path, verbose=debug_file)
+                logging.debug("Creating json_file...")
+                info_profile({profile_name: profile_dict}, filename=json_path)
             elif args.json and args.json_filename == "":
-                if debug_file:
-                    print("Starting to create json output")
-                info_profile({profile_name: profile_dict}, filename=json_path, verbose=debug_file)
+                logging.debug("Creating json output...")
+                info_profile({profile_name: profile_dict}, filename=json_path)
         else:
             profile = os.path.normpath(cwd + "/" + profile)
-            if debug_file:
-                print("Assuming profile is a file:", profile)
+            logging.debug("Assuming profile is a file: %s", profile)
             try:
                 with open(profile, "r") as file:
                     text = [x.replace("\n", "") for x in file.readlines()]
             except FileNotFoundError:
-                print("Error: The following file does not exist:", profile)
+                logging.error("The following file does not exist:", profile)
                 text = []
             for line in text:
                 if line.startswith(main_url):
-                    if debug_file:
-                        print("Working on URL of file:", line)
-                        print("Starting downloader process with Firefox...")
+                    logging.debug("Working on URL of file: %s", line)
+                    logging.debug("Starting download process with Firefox...")
                     profile_name = line.split("/")[3]
                     profile_driver = driver_startup(driver_visible=visible,
                                                     disable_login=args.no_login,
                                                     driver_sleep=args.sleep,
-                                                    use_creds=args.creds,
-                                                    load_debug=debug_file)
+                                                    use_creds=args.creds)
                     if profile_driver is not None:
                         profile_list = check_profile_url(line, profile_driver,
-                                                         no_login=args.no_login, driver_sleep=args.sleep,
-                                                         debug_download=debug_output)
+                                                         no_login=args.no_login, driver_sleep=args.sleep)
+                        logging.debug("Finished download process.")
                     else:
-                        if debug_file:
-                            print("Could not finish driver_startup.")
+                        logging.critical("Could not finish driver_startup.")
                         profile_list = None
-                    if debug_file:
-                        print("Finished downloader process.")
                     if profile_list is not None:
-                        profile_dict = update_profile(history_fullpath, profile_name, profile_list,
-                                                      debug_read_write=debug_file)
+                        profile_dict = update_profile(history_fullpath, profile_name, profile_list)
+                        logging.debug("Finished update process.")
                     else:
                         profile_dict = None
                     if profile_dict is None:
                         if args.progress_file:
-                            if debug_file:
-                                print("Removing in_progress file...")
+                            logging.debug("Removing in_progress file...")
                             os.remove(default_progressfile)
                         exit(1)
                     json_path = os.path.normpath(args.json_path + "/" + args.json_filename)
                     if args.json and args.json_filename != "":
-                        if debug_file:
-                            print("Starting to create json_file")
-                        info_profile({profile_name: profile_dict}, filename=json_path, verbose=debug_file)
+                        logging.debug("Creating json_file...")
+                        info_profile({profile_name: profile_dict}, filename=json_path)
                     elif args.json and args.json_filename == "":
-                        if debug_file:
-                            print("Starting to create json output")
-                        info_profile({profile_name: profile_dict}, filename=json_path, verbose=debug_file)
+                        logging.debug("Starting to create json output...")
+                        info_profile({profile_name: profile_dict}, filename=json_path)
                 else:
-                    if debug_output:
-                        print("Ignoring wrong URL. File: '" + profile + "' Line: '" + line + "'")
+                    logging.warning("Ignoring wrong URL. File: '%s' Line: '%s'", profile, line)
             if args.remove_profile:
                 try:
+                    logging.debug("Removing profile...")
                     os.remove(profile)
                     if profile_num != 0:
                         profile_num -= 1
                 except FileNotFoundError:
-                    pass
+                    logging.warning("Could not remove profile. File not found: %s", profile)
 
 if args.progress_file:
-    if debug_file:
-        print("Removing in_progress file...")
+    logging.debug("Removing in_progress file...")
     os.remove(default_progressfile)
+
+logging.debug("Stopping insta-downloader.py...")
