@@ -526,16 +526,25 @@ parser.add_argument("profiles",
                     type=str, nargs="+")
 args = parser.parse_args()
 
-visible = args.verbose >= 3
-debug_file = args.verbose >= 2
-debug_output = args.verbose >= 1
+if args.verbose is not None:
+    visible = args.verbose >= 3
+    debug_file = args.verbose >= 2
+    debug_output = args.verbose >= 1
+else:
+    visible = False
+    debug_file = False
+    debug_output = False
 
 if debug_output:
-    logging.basicConfig(filename=config_logfile, level=logging.DEBUG if debug_file else logging.INFO,
-                        format="%(asctime)s [%(levelname)s] (%(funcName)s): %(message)s", filemode="a")
+    # noinspection PyArgumentList
+    logging.basicConfig(level=logging.DEBUG if debug_file else logging.INFO,
+                        format="%(asctime)s [%(levelname)s] (%(funcName)s): %(message)s",
+                        handlers=[logging.StreamHandler(), logging.FileHandler(filename=config_logfile, mode="a")])
 else:
-    logging.basicConfig(filename=config_logfile, level=logging.ERROR,
-                        format="%(asctime)s [%(levelname)s] (%(funcName)s): %(message)s", filemode="a")
+    # noinspection PyArgumentList
+    logging.basicConfig(level=logging.ERROR,
+                        format="%(asctime)s [%(levelname)s] (%(funcName)s): %(message)s",
+                        handlers=[logging.StreamHandler(), logging.FileHandler(filename=config_logfile, mode="a")])
 
 history_fullpath = args.history_path + "/" + config_history
 os.makedirs(args.history_path, exist_ok=True)
