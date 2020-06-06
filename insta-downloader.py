@@ -334,7 +334,7 @@ def check_profile_url(url, driver, no_login=False, driver_sleep=default_sleep):
             one_left = False
             while not one_left:
                 time.sleep(driver_sleep)
-                if driver.find_elements_by_tag_name("h2")[0].get_attribute() == "MCXLF":
+                if driver.find_elements_by_tag_name("h2")[0].get_attribute("class") == "MCXLF":
                     logging.warning("Profile does not exist: %s", url)
                     try:
                         driver.quit()
@@ -392,7 +392,7 @@ def download_profile_url(url, name, driver, no_login=False, driver_sleep=default
             one_left = False
             while not one_left:
                 time.sleep(driver_sleep)
-                if driver.find_elements_by_tag_name("h2")[0].get_attribute() == "MCXLF":
+                if driver.find_elements_by_tag_name("h2")[0].get_attribute("class") == "MCXLF":
                     logging.warning("Profile does not exist: %s", url)
                     try:
                         driver.quit()
