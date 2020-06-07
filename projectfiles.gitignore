@@ -1,6 +1,7 @@
-# Ignore everything except the project scripts, README and requirements files
+# Ignore everything except the project scripts, README + Git files and requirements files
 /*
 !/insta-downloader.py
 !/install-requirements.py
 !/README.md
 !/requirements.txt
+!/*.gitignore
