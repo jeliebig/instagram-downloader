@@ -106,44 +106,51 @@ def write_json(filename, write_dict, check=True):
 
 
 def info_profile(profile, filename=""):
-    keylist = ["username", "icon_url", "save_url", "time_post", "title", "type", "stored_path"]
-    if filename != "":
-        if ".json" in filename:
-            filename.replace(".json", "")
-        if not filename.endswith("-"):
-            filename += "-"
-        filename += "-(%user%)-(%post_url%)"
-    for user in profile.keys():
-        logging.info("Processing information about user: %s", user)
-        for post_url in profile[user]:
-            print_dict = {user: {}}
-            if post_url not in print_dict[user].keys():
-                print_dict[user][post_url] = {}
-            logging.info("[%s]: downloading post URL: %s", user, post_url)
-            for save_url in profile[user][post_url].keys():
-                if save_url not in print_dict[user][post_url]:
-                    print_dict[user][post_url][save_url] = {}
-                    logging.debug("List of saved URL: %s", profile[user][post_url][save_url])
-                for obj in range(len(profile[user][post_url][save_url])):
-                    print_dict[user][post_url][save_url][keylist[obj]] = profile[user][post_url][save_url][obj]
-            if filename != "":
-                write_json(filename.replace("%user%", user).replace("%post_url%", post_url.split("/")[4]),
-                           print_dict, check=False)
-            else:
-                print(json.dumps(print_dict))
-        logging.info("Finished processing information about user: %s", user)
+    try:
+        keylist = ["username", "icon_url", "save_url", "time_post", "title", "type", "stored_path"]
+        if filename != "":
+            if ".json" in filename:
+                filename.replace(".json", "")
+            if not filename.endswith("-"):
+                filename += "-"
+            filename += "-(%user%)-(%post_url%)"
+        for user in profile.keys():
+            logging.info("Processing information about user: %s", user)
+            for post_url in profile[user]:
+                print_dict = {user: {}}
+                if post_url not in print_dict[user].keys():
+                    print_dict[user][post_url] = {}
+                logging.info("[%s]: downloading post URL: %s", user, post_url)
+                for save_url in profile[user][post_url].keys():
+                    if save_url not in print_dict[user][post_url]:
+                        print_dict[user][post_url][save_url] = {}
+                        logging.debug("List of saved URL: %s", profile[user][post_url][save_url])
+                    for obj in range(len(profile[user][post_url][save_url])):
+                        print_dict[user][post_url][save_url][keylist[obj]] = profile[user][post_url][save_url][obj]
+                if filename != "":
+                    write_json(filename.replace("%user%", user).replace("%post_url%", post_url.split("/")[4]),
+                               print_dict, check=False)
+                else:
+                    print(json.dumps(print_dict))
+            logging.info("Finished processing information about user: %s", user)
+    except Exception as e:
+        logging.exception("Could not process information. The following exception occurred: %s", e)
 
 
 def diff_history(history_file, name, plist):
-    history_json = load_json(history_file)
-    if name in history_json.keys():
-        return_list = []
-        for post_url in plist:
-            if post_url not in history_json[name]:
-                return_list.append(post_url)
-        return return_list
-    else:
-        return plist
+    try:
+        history_json = load_json(history_file)
+        if name in history_json.keys():
+            return_list = []
+            for post_url in plist:
+                if post_url not in history_json[name]:
+                    return_list.append(post_url)
+            return return_list
+        else:
+            return plist
+    except Exception as e:
+        logging.exception("Could not create diff history dict. The following exception occurred: %s", e)
+        return None
 
 
 def driver_startup(driver_visible=False, disable_login=False, driver_sleep=default_sleep,
@@ -174,25 +181,29 @@ def driver_startup(driver_visible=False, disable_login=False, driver_sleep=defau
 
 
 def update_profile(history_file, name, post_list):
-    update_dict = {}
-    for post in diff_history(history_file, name, post_list):
-        post_results = get_insta_post(post, name, write_file=not args.json,
-                                      file_path=args.filepath, file_name=args.filename,
-                                      driver_visible=visible, driver_sleep=args.sleep, no_info=args.no_info)
-        if post_results is not None:
-            history_json = load_json(history_fullpath)
-            if profile_name not in history_json.keys():
-                history_json[profile_name] = {}
-            if post not in history_json[profile_name].keys():
-                history_json[profile_name][post] = {}
-            history_json[profile_name][post] = post_results
-            write_json(history_file, history_json)
-            update_dict[name] = {}
-            update_dict[name][post] = post_results
-        else:
-            logging.error("Detected crash in get_insta_post. Exiting...")
-            return None
-    return update_dict
+    try:
+        update_dict = {}
+        for post in diff_history(history_file, name, post_list):
+            post_results = get_insta_post(post, name, write_file=not args.json,
+                                          file_path=args.filepath, file_name=args.filename,
+                                          driver_visible=visible, driver_sleep=args.sleep, no_info=args.no_info)
+            if post_results is not None:
+                history_json = load_json(history_fullpath)
+                if profile_name not in history_json.keys():
+                    history_json[profile_name] = {}
+                if post not in history_json[profile_name].keys():
+                    history_json[profile_name][post] = {}
+                history_json[profile_name][post] = post_results
+                write_json(history_file, history_json)
+                update_dict[name] = {}
+                update_dict[name][post] = post_results
+            else:
+                logging.error("Detected crash in get_insta_post. Exiting...")
+                return None
+        return update_dict
+    except Exception as e:
+        logging.exception("Could not download recent posts. The following exception occurred: %s", e)
+        return None
 
 
 def get_insta_post(url, name, driver=None,
