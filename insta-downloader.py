@@ -258,7 +258,7 @@ def get_insta_post(url, name, driver=None,
                         if driver.execute_script('return document.getElementsByTagName("h2").length') != 0:
                             title = str(
                                 driver.execute_script(
-                                    'return document.getElementsByTagName("h2")[0].nextSibling.textContent'))
+                                    'return document.getElementsByTagName("h2")[0].nextSibling.innerText'))
                         else:
                             title = "__no title__"
                         content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title,
@@ -293,7 +293,7 @@ def get_insta_post(url, name, driver=None,
                     if driver.execute_script('return document.getElementsByTagName("h2").length') != 0:
                         title = str(
                             driver.execute_script(
-                                'return document.getElementsByTagName("h2")[0].nextSibling.textContent'))
+                                'return document.getElementsByTagName("h2")[0].nextSibling.innerText'))
                     else:
                         title = "__no title__"
                     content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title, key]
