@@ -264,7 +264,7 @@ def get_insta_post(url, name, driver=None,
                         content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title,
                                         key]
                         if save_url not in content_all.keys():
-                            logging.debug("Adding URL to download list: ", save_url)
+                            logging.debug("Adding URL to download list: %s", save_url)
                             content_all[save_url] = content_list
         else:
             content_dict = {"images": driver.find_elements_by_tag_name("img"),
@@ -303,7 +303,7 @@ def get_insta_post(url, name, driver=None,
             driver.quit()
             return content_all
         for saves in content_all.keys():
-            logging.debug("Now working on: ", content_all[saves])
+            logging.debug("Now working on: %s", content_all[saves])
             name = content_all[saves][0]
             icon_url = content_all[saves][1]
             save_url = content_all[saves][2]
