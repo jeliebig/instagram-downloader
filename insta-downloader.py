@@ -317,10 +317,10 @@ def get_insta_post(url, name, driver=None,
                 file_title = file_title.replace(badchar, replace_badfilename[badchar])
                 file_profile = file_profile.replace(badchar, replace_badfilename[badchar])
             local_filename, headers = urllib.request.urlretrieve(save_url)
-            file_path = file_path.replace("%title%", file_title) \
+            save_file_path = file_path.replace("%title%", file_title) \
                 .replace("%upload_date%", time_post) \
                 .replace("%profile%", file_profile)
-            file_name = file_name.replace("%title%", file_title) \
+            save_file_name = file_name.replace("%title%", file_title) \
                 .replace("%upload_date%", time_post) \
                 .replace("%profile%", file_profile)
             if key == "images":
@@ -329,9 +329,9 @@ def get_insta_post(url, name, driver=None,
                 file_ext = ".mp4"
             else:
                 file_ext = ""
-            file_name = file_name + file_ext
-            os.makedirs(file_path, exist_ok=True)
-            full_path = os.path.normpath(file_path + "/" + file_name)
+            save_file_name = save_file_name + file_ext
+            os.makedirs(save_file_path, exist_ok=True)
+            full_path = os.path.normpath(save_file_path + "/" + save_file_name)
             content_all[saves].append(full_path)
             shutil.move(local_filename, full_path)
             if not no_info:
