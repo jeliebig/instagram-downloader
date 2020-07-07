@@ -80,7 +80,7 @@ def write_json(filename, write_dict, check=True):
         else:
             logging.debug("Changes found. Writing file: %s", filename)
             with open(filename + ".json.1", "w") as file:
-                json.dump(write_dict, file)
+                json.dump(write_dict, file, indent=4)
             logging.debug("Write to dummy complete.")
             if os.path.isfile(filename + ".json"):
                 logging.debug("Creating backup file...")
