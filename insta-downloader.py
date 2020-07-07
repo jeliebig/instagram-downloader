@@ -559,19 +559,19 @@ if debug_output:
                         format="%(asctime)s [%(levelname)s] (%(funcName)s): %(message)s",
                         handlers=[logging.StreamHandler(),
                                   logging.handlers.RotatingFileHandler(filename=config_logfile, mode="a",
-                                                                       maxBytes=5000000, backupCount=3)])
+                                                                       maxBytes=10000000, backupCount=3)])
 else:
     # noinspection PyArgumentList
     logging.basicConfig(level=logging.ERROR,
                         format="%(asctime)s [%(levelname)s] (%(funcName)s): %(message)s",
                         handlers=[logging.StreamHandler(),
                                   logging.handlers.RotatingFileHandler(filename=config_logfile, mode="a",
-                                                                       maxBytes=5000000, backupCount=3)])
+                                                                       maxBytes=10000000, backupCount=3)])
 
 history_fullpath = args.history_path + "/" + config_history
 os.makedirs(args.history_path, exist_ok=True)
 
-logging.debug("Starting insta-downloader.py...")
+logging.info("Starting insta-downloader.py...")
 logging.debug("Starting to process args now.")
 
 if args.progress_file:
@@ -586,13 +586,13 @@ if args.progress_file:
     logging.info("Starting execution now.")
 
 if args.all:
-    logging.debug("Downloading every post of the provided profiles...")
+    logging.info("Downloading every post of the provided profiles...")
     for profile_num in range(len(args.profiles)):
         profile = args.profiles[profile_num]
-        logging.debug("Now working on profile: %s", profile)
+        logging.info("Now working on profile: %s", profile)
         if profile.startswith(main_url[0]) or profile.startswith(main_url[1]):
-            logging.debug("Profile is a valid Instagram URL.")
-            logging.debug("Starting download process with Firefox.")
+            logging.info("Profile is a valid Instagram URL.")
+            logging.info("Starting download process with Firefox.")
             profile_name = profile.split("/")[3]
             profile_driver = driver_startup(driver_visible=visible,
                                             disable_login=args.no_login,
@@ -604,7 +604,7 @@ if args.all:
                                                     file_path=args.filepath, file_name=args.filename,
                                                     no_info=args.no_info, write_file=not args.json,
                                                     driver_visible=visible)
-                logging.debug("Finished download process.")
+                logging.info("Finished download process.")
             else:
                 logging.critical("Could not finish driver_startup.")
                 profile_dict = None
@@ -630,7 +630,7 @@ if args.all:
                 info_profile({profile_name: profile_dict}, filename=json_path)
         else:
             profile = os.path.normpath(cwd + "/" + profile)
-            logging.debug("Assuming profile is a file: %s", profile)
+            logging.info("Assuming profile is a file: %s", profile)
             try:
                 with open(profile, "r") as file:
                     text = [x.replace("\n", "") for x in file.readlines()]
@@ -639,8 +639,8 @@ if args.all:
                 text = []
             for line in text:
                 if line.startswith(main_url[0]) or line.startswith(main_url[1]):
-                    logging.debug("Working on URL of file: %s", line)
-                    logging.debug("Starting download process with Firefox.")
+                    logging.info("Working on URL of file: %s", line)
+                    logging.info("Starting download process with Firefox.")
                     profile_name = line.split("/")[3]
                     profile_driver = driver_startup(driver_visible=visible,
                                                     disable_login=args.no_login,
@@ -652,7 +652,7 @@ if args.all:
                                                             file_path=args.filepath, file_name=args.filename,
                                                             no_info=args.no_info, write_file=not args.json,
                                                             driver_visible=visible)
-                        logging.debug("Finished download process.")
+                        logging.info("Finished download process.")
                     else:
                         logging.critical("Could not finish driver_startup.")
                         profile_dict = None
@@ -695,13 +695,13 @@ if args.all:
                 except FileNotFoundError:
                     logging.warning("Could not remove profile. File not found: %s", profile)
 elif args.update:
-    logging.debug("Downloading only recent posts of the provided profiles...")
+    logging.info("Downloading only recent posts of the provided profiles...")
     for profile_num in range(len(args.profiles)):
         profile = args.profiles[profile_num]
-        logging.debug("Now working on profile: %s", profile)
+        logging.info("Now working on profile: %s", profile)
         if profile.startswith(main_url[0]) or profile.startswith(main_url[1]):
-            logging.debug("Profile is a valid Instagram URL.")
-            logging.debug("Starting download process with Firefox...")
+            logging.info("Profile is a valid Instagram URL.")
+            logging.info("Starting download process with Firefox...")
             profile_name = profile.split("/")[3]
             profile_driver = driver_startup(driver_visible=visible,
                                             disable_login=args.no_login,
@@ -710,7 +710,7 @@ elif args.update:
             if profile_driver is not None:
                 profile_list = check_profile_url(profile, profile_driver,
                                                  no_login=args.no_login, driver_sleep=args.sleep)
-                logging.debug("Finished download process.")
+                logging.info("Finished download process.")
             else:
                 logging.critical("Could not finish driver_startup.")
                 profile_list = None
@@ -736,7 +736,7 @@ elif args.update:
                 info_profile({profile_name: profile_dict}, filename=json_path)
         else:
             profile = os.path.normpath(cwd + "/" + profile)
-            logging.debug("Assuming profile is a file: %s", profile)
+            logging.info("Assuming profile is a file: %s", profile)
             try:
                 with open(profile, "r") as file:
                     text = [x.replace("\n", "") for x in file.readlines()]
@@ -745,8 +745,8 @@ elif args.update:
                 text = []
             for line in text:
                 if line.startswith(main_url[0]) or line.startswith(main_url[1]):
-                    logging.debug("Working on URL of file: %s", line)
-                    logging.debug("Starting download process with Firefox...")
+                    logging.info("Working on URL of file: %s", line)
+                    logging.info("Starting download process with Firefox...")
                     profile_name = line.split("/")[3]
                     profile_driver = driver_startup(driver_visible=visible,
                                                     disable_login=args.no_login,
@@ -755,13 +755,13 @@ elif args.update:
                     if profile_driver is not None:
                         profile_list = check_profile_url(line, profile_driver,
                                                          no_login=args.no_login, driver_sleep=args.sleep)
-                        logging.debug("Finished download process.")
+                        logging.info("Finished download process.")
                     else:
                         logging.critical("Could not finish driver_startup.")
                         profile_list = None
                     if profile_list is not None and profile_list != "404":
                         profile_dict = update_profile(history_fullpath, profile_name, profile_list)
-                        logging.debug("Finished update process.")
+                        logging.info("Finished update process.")
                     elif profile_list == "404":
                         logging.warning("Profile not found. Editing file...")
                         newtext = text.copy()
@@ -801,4 +801,4 @@ if args.progress_file:
     logging.debug("Removing in_progress file...")
     os.remove(default_progressfile)
 
-logging.debug("Stopping insta-downloader.py...")
+logging.info("Stopping insta-downloader.py...")
