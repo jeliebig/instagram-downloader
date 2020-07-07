@@ -18,7 +18,7 @@ config_history = "insta_history.json"
 default_sleep = 2
 default_historypath = "config"
 default_progressfile = "config/id_in_progress.lock"
-default_filename = "instagram-%upload_date%-"
+default_filename = "instagram-%upload_date%"
 default_filepath = "data/%profile%/%upload_date%"
 replace_badfilename = {"/": "_", "\\": "_", "?": "_",
                        "%": "per cent", "*": "_", ":": "_",
