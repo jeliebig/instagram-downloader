@@ -11,7 +11,7 @@ import logging.handlers
 import json
 import os
 
-main_url = "https://www.instagram.com"
+main_url = ["https://www.instagram.com", "https://instagram.com"]
 config_logfile = "insta-downloader.log"
 config_creds = "config/creds.json"
 config_history = "insta_history.json"
@@ -168,7 +168,7 @@ def driver_startup(driver_visible=False, disable_login=False, driver_sleep=defau
             logging.error("Credentials not found. Please check the creds.json file.")
         else:
             try:
-                driver.get(main_url + "/accounts/login")
+                driver.get(main_url[0] + "/accounts/login")
                 time.sleep(driver_sleep)
                 driver.find_element_by_name("username").send_keys(creds[use_creds]["username"])
                 driver.find_element_by_name("password").send_keys(creds[use_creds]["password"])
@@ -310,7 +310,7 @@ def get_insta_post(url, name, driver=None,
             time_post = content_all[saves][3].strftime("%Y-%m-%d_%H-%M-%S")
             title = content_all[saves][4]
             key = content_all[saves][5]
-            result_list = [name, main_url, icon_url, time_post, title, key, url, save_url]
+            result_list = [name, main_url[0], icon_url, time_post, title, key, url, save_url]
             file_title = title
             file_profile = name
             for badchar in replace_badfilename.keys():
@@ -339,7 +339,7 @@ def get_insta_post(url, name, driver=None,
 
 def check_profile_url(url, driver, no_login=False, driver_sleep=default_sleep):
     try:
-        if url.startswith(main_url):
+        if url.startswith(main_url[0]) or url.startswith(main_url[1]):
             return_list = []
             driver.get(url)
             one_left = False
@@ -390,7 +390,7 @@ def download_profile_url(url, name, driver, no_login=False, driver_sleep=default
                          file_path=default_filepath, file_name=default_filename, write_file=True, no_info=False,
                          driver_visible=False):
     try:
-        if url.startswith(main_url):
+        if url.startswith(main_url[0]) or url.startswith(main_url[1]):
             return_dict = {}
             driver.get(url)
             one_left = False
@@ -584,7 +584,7 @@ if args.all:
     for profile_num in range(len(args.profiles)):
         profile = args.profiles[profile_num]
         logging.debug("Now working on profile: %s", profile)
-        if profile.startswith(main_url):
+        if profile.startswith(main_url[0]) or profile.startswith(main_url[1]):
             logging.debug("Profile is a valid Instagram URL.")
             logging.debug("Starting download process with Firefox.")
             profile_name = profile.split("/")[3]
@@ -632,7 +632,7 @@ if args.all:
                 logging.error("The following file does not exist: %s", profile)
                 text = []
             for line in text:
-                if line.startswith(main_url):
+                if line.startswith(main_url[0]) or line.startswith(main_url[1]):
                     logging.debug("Working on URL of file: %s", line)
                     logging.debug("Starting download process with Firefox.")
                     profile_name = line.split("/")[3]
@@ -693,7 +693,7 @@ elif args.update:
     for profile_num in range(len(args.profiles)):
         profile = args.profiles[profile_num]
         logging.debug("Now working on profile: %s", profile)
-        if profile.startswith(main_url):
+        if profile.startswith(main_url[0]) or profile.startswith(main_url[1]):
             logging.debug("Profile is a valid Instagram URL.")
             logging.debug("Starting download process with Firefox...")
             profile_name = profile.split("/")[3]
@@ -738,7 +738,7 @@ elif args.update:
                 logging.error("The following file does not exist:", profile)
                 text = []
             for line in text:
-                if line.startswith(main_url):
+                if line.startswith(main_url[0]) or line.startswith(main_url[1]):
                     logging.debug("Working on URL of file: %s", line)
                     logging.debug("Starting download process with Firefox...")
                     profile_name = line.split("/")[3]
