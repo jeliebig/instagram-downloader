@@ -335,7 +335,11 @@ def get_insta_post(url, name, driver=None,
             content_all[saves].append(full_path)
             shutil.move(local_filename, full_path)
             if not no_info:
-                write_json(full_path + ".info", {title: result_list})
+                info_dict = {"name": result_list[0], "insta_main_url": result_list[1],
+                             "profile_icon_url": result_list[2], "post_time": result_list[3],
+                             "description": result_list[4], "download_key": result_list[5],
+                             "post_url": result_list[6], "download_url": result_list[7]}
+                write_json(full_path + ".info", info_dict)
         driver.quit()
         return content_all
     except Exception as e:
