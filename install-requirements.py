@@ -26,7 +26,7 @@ if platform.system() == "Windows":
     else:
         ask_win = ""
         while ask_win.lower() != "y" and ask_win.lower() != "n":
-            ask_win = input("Did you install geckodriver already? (y/n): ")
+            ask_win = input("Do you have geckodriver installed already? (y/n): ")
         if ask_win.lower() == "y":
             print("Installation finished.")
             exit(0)
