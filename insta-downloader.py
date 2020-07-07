@@ -323,7 +323,13 @@ def get_insta_post(url, name, driver=None,
             file_name = file_name.replace("%title%", file_title) \
                 .replace("%upload_date%", time_post) \
                 .replace("%profile%", file_profile)
-            file_name = file_name + local_filename.rsplit(".", maxsplit=1)[1]
+            if key == "images":
+                file_ext = ".jpg"
+            elif key == "videos":
+                file_ext = ".mp4"
+            else:
+                file_ext = ""
+            file_name = file_name + file_ext
             os.makedirs(file_path, exist_ok=True)
             full_path = os.path.normpath(file_path + "/" + file_name)
             content_all[saves].append(full_path)
