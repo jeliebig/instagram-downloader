@@ -11,7 +11,7 @@ import logging.handlers
 import json
 import os
 
-main_url = "https://www.instagram.com"
+main_url = ["https://www.instagram.com", "https://instagram.com"]
 config_logfile = "insta-downloader.log"
 config_creds = "config/creds.json"
 config_history = "insta_history.json"
@@ -106,44 +106,51 @@ def write_json(filename, write_dict, check=True):
 
 
 def info_profile(profile, filename=""):
-    keylist = ["username", "icon_url", "save_url", "time_post", "title", "type", "stored_path"]
-    if filename != "":
-        if ".json" in filename:
-            filename.replace(".json", "")
-        if not filename.endswith("-"):
-            filename += "-"
-        filename += "-(%user%)-(%post_url%)"
-    for user in profile.keys():
-        logging.info("Processing information about user: %s", user)
-        for post_url in profile[user]:
-            print_dict = {user: {}}
-            if post_url not in print_dict[user].keys():
-                print_dict[user][post_url] = {}
-            logging.info("[%s]: downloading post URL: %s", user, post_url)
-            for save_url in profile[user][post_url].keys():
-                if save_url not in print_dict[user][post_url]:
-                    print_dict[user][post_url][save_url] = {}
-                    logging.debug("List of saved URL: %s", profile[user][post_url][save_url])
-                for obj in range(len(profile[user][post_url][save_url])):
-                    print_dict[user][post_url][save_url][keylist[obj]] = profile[user][post_url][save_url][obj]
-            if filename != "":
-                write_json(filename.replace("%user%", user).replace("%post_url%", post_url.split("/")[4]),
-                           print_dict, check=False)
-            else:
-                print(json.dumps(print_dict))
-        logging.info("Finished processing information about user: %s", user)
+    try:
+        keylist = ["username", "icon_url", "save_url", "time_post", "title", "type", "stored_path"]
+        if filename != "":
+            if ".json" in filename:
+                filename.replace(".json", "")
+            if not filename.endswith("-"):
+                filename += "-"
+            filename += "-(%user%)-(%post_url%)"
+        for user in profile.keys():
+            logging.info("Processing information about user: %s", user)
+            for post_url in profile[user]:
+                print_dict = {user: {}}
+                if post_url not in print_dict[user].keys():
+                    print_dict[user][post_url] = {}
+                logging.info("[%s]: downloading post URL: %s", user, post_url)
+                for save_url in profile[user][post_url].keys():
+                    if save_url not in print_dict[user][post_url]:
+                        print_dict[user][post_url][save_url] = {}
+                        logging.debug("List of saved URL: %s", profile[user][post_url][save_url])
+                    for obj in range(len(profile[user][post_url][save_url])):
+                        print_dict[user][post_url][save_url][keylist[obj]] = profile[user][post_url][save_url][obj]
+                if filename != "":
+                    write_json(filename.replace("%user%", user).replace("%post_url%", post_url.split("/")[4]),
+                               print_dict, check=False)
+                else:
+                    print(json.dumps(print_dict))
+            logging.info("Finished processing information about user: %s", user)
+    except Exception as e:
+        logging.exception("Could not process information. The following exception occurred: %s", e)
 
 
 def diff_history(history_file, name, plist):
-    history_json = load_json(history_file)
-    if name in history_json.keys():
-        return_list = []
-        for post_url in plist:
-            if post_url not in history_json[name]:
-                return_list.append(post_url)
-        return return_list
-    else:
-        return plist
+    try:
+        history_json = load_json(history_file)
+        if name in history_json.keys():
+            return_list = []
+            for post_url in plist:
+                if post_url not in history_json[name]:
+                    return_list.append(post_url)
+            return return_list
+        else:
+            return plist
+    except Exception as e:
+        logging.exception("Could not create diff history dict. The following exception occurred: %s", e)
+        return None
 
 
 def driver_startup(driver_visible=False, disable_login=False, driver_sleep=default_sleep,
@@ -161,7 +168,7 @@ def driver_startup(driver_visible=False, disable_login=False, driver_sleep=defau
             logging.error("Credentials not found. Please check the creds.json file.")
         else:
             try:
-                driver.get(main_url + "/accounts/login")
+                driver.get(main_url[0] + "/accounts/login")
                 time.sleep(driver_sleep)
                 driver.find_element_by_name("username").send_keys(creds[use_creds]["username"])
                 driver.find_element_by_name("password").send_keys(creds[use_creds]["password"])
@@ -174,25 +181,29 @@ def driver_startup(driver_visible=False, disable_login=False, driver_sleep=defau
 
 
 def update_profile(history_file, name, post_list):
-    update_dict = {}
-    for post in diff_history(history_file, name, post_list):
-        post_results = get_insta_post(post, name, write_file=not args.json,
-                                      file_path=args.filepath, file_name=args.filename,
-                                      driver_visible=visible, driver_sleep=args.sleep, no_info=args.no_info)
-        if post_results is not None:
-            history_json = load_json(history_fullpath)
-            if profile_name not in history_json.keys():
-                history_json[profile_name] = {}
-            if post not in history_json[profile_name].keys():
-                history_json[profile_name][post] = {}
-            history_json[profile_name][post] = post_results
-            write_json(history_file, history_json)
-            update_dict[name] = {}
-            update_dict[name][post] = post_results
-        else:
-            logging.error("Detected crash in get_insta_post. Exiting...")
-            return None
-    return update_dict
+    try:
+        update_dict = {}
+        for post in diff_history(history_file, name, post_list):
+            post_results = get_insta_post(post, name, write_file=not args.json,
+                                          file_path=args.filepath, file_name=args.filename,
+                                          driver_visible=visible, driver_sleep=args.sleep, no_info=args.no_info)
+            if post_results is not None:
+                history_json = load_json(history_fullpath)
+                if profile_name not in history_json.keys():
+                    history_json[profile_name] = {}
+                if post not in history_json[profile_name].keys():
+                    history_json[profile_name][post] = {}
+                history_json[profile_name][post] = post_results
+                write_json(history_file, history_json)
+                update_dict[name] = {}
+                update_dict[name][post] = post_results
+            else:
+                logging.error("Detected crash in get_insta_post. Exiting...")
+                return None
+        return update_dict
+    except Exception as e:
+        logging.exception("Could not download recent posts. The following exception occurred: %s", e)
+        return None
 
 
 def get_insta_post(url, name, driver=None,
@@ -247,13 +258,13 @@ def get_insta_post(url, name, driver=None,
                         if driver.execute_script('return document.getElementsByTagName("h2").length') != 0:
                             title = str(
                                 driver.execute_script(
-                                    'return document.getElementsByTagName("h2")[0].nextSibling.textContent'))
+                                    'return document.getElementsByTagName("h2")[0].nextSibling.innerText'))
                         else:
                             title = "__no title__"
                         content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title,
                                         key]
                         if save_url not in content_all.keys():
-                            logging.debug("Adding URL to download list: ", save_url)
+                            logging.debug("Adding URL to download list: %s", save_url)
                             content_all[save_url] = content_list
         else:
             content_dict = {"images": driver.find_elements_by_tag_name("img"),
@@ -282,7 +293,7 @@ def get_insta_post(url, name, driver=None,
                     if driver.execute_script('return document.getElementsByTagName("h2").length') != 0:
                         title = str(
                             driver.execute_script(
-                                'return document.getElementsByTagName("h2")[0].nextSibling.textContent'))
+                                'return document.getElementsByTagName("h2")[0].nextSibling.innerText'))
                     else:
                         title = "__no title__"
                     content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title, key]
@@ -292,14 +303,14 @@ def get_insta_post(url, name, driver=None,
             driver.quit()
             return content_all
         for saves in content_all.keys():
-            logging.debug("Now working on: ", content_all[saves])
+            logging.debug("Now working on: %s", content_all[saves])
             name = content_all[saves][0]
             icon_url = content_all[saves][1]
             save_url = content_all[saves][2]
-            time_post = content_all[saves][3].strftime("%Y-%m-%d_%H-%M-%S")
+            time_post = content_all[saves][3]
             title = content_all[saves][4]
             key = content_all[saves][5]
-            result_list = [name, main_url, icon_url, time_post, title, key, url, save_url]
+            result_list = [name, main_url[0], icon_url, time_post, title, key, url, save_url]
             file_title = title
             file_profile = name
             for badchar in replace_badfilename.keys():
@@ -328,7 +339,7 @@ def get_insta_post(url, name, driver=None,
 
 def check_profile_url(url, driver, no_login=False, driver_sleep=default_sleep):
     try:
-        if url.startswith(main_url):
+        if url.startswith(main_url[0]) or url.startswith(main_url[1]):
             return_list = []
             driver.get(url)
             one_left = False
@@ -379,7 +390,7 @@ def download_profile_url(url, name, driver, no_login=False, driver_sleep=default
                          file_path=default_filepath, file_name=default_filename, write_file=True, no_info=False,
                          driver_visible=False):
     try:
-        if url.startswith(main_url):
+        if url.startswith(main_url[0]) or url.startswith(main_url[1]):
             return_dict = {}
             driver.get(url)
             one_left = False
@@ -573,7 +584,7 @@ if args.all:
     for profile_num in range(len(args.profiles)):
         profile = args.profiles[profile_num]
         logging.debug("Now working on profile: %s", profile)
-        if profile.startswith(main_url):
+        if profile.startswith(main_url[0]) or profile.startswith(main_url[1]):
             logging.debug("Profile is a valid Instagram URL.")
             logging.debug("Starting download process with Firefox.")
             profile_name = profile.split("/")[3]
@@ -621,7 +632,7 @@ if args.all:
                 logging.error("The following file does not exist: %s", profile)
                 text = []
             for line in text:
-                if line.startswith(main_url):
+                if line.startswith(main_url[0]) or line.startswith(main_url[1]):
                     logging.debug("Working on URL of file: %s", line)
                     logging.debug("Starting download process with Firefox.")
                     profile_name = line.split("/")[3]
@@ -682,7 +693,7 @@ elif args.update:
     for profile_num in range(len(args.profiles)):
         profile = args.profiles[profile_num]
         logging.debug("Now working on profile: %s", profile)
-        if profile.startswith(main_url):
+        if profile.startswith(main_url[0]) or profile.startswith(main_url[1]):
             logging.debug("Profile is a valid Instagram URL.")
             logging.debug("Starting download process with Firefox...")
             profile_name = profile.split("/")[3]
@@ -727,7 +738,7 @@ elif args.update:
                 logging.error("The following file does not exist:", profile)
                 text = []
             for line in text:
-                if line.startswith(main_url):
+                if line.startswith(main_url[0]) or line.startswith(main_url[1]):
                     logging.debug("Working on URL of file: %s", line)
                     logging.debug("Starting download process with Firefox...")
                     profile_name = line.split("/")[3]
