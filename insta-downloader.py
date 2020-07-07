@@ -303,7 +303,7 @@ def get_insta_post(url, name, driver=None,
             driver.quit()
             return content_all
         for saves in content_all.keys():
-            logging.debug("Now working on: %s", content_all[saves])
+            logging.debug("Now working on: %s", content_all[saves][2])
             name = content_all[saves][0]
             icon_url = content_all[saves][1]
             save_url = content_all[saves][2]
@@ -335,7 +335,7 @@ def get_insta_post(url, name, driver=None,
             content_all[saves].append(full_path)
             shutil.move(local_filename, full_path)
             if not no_info:
-                write_json(full_path + ".info", {title.encode(): [s.encode() for s in result_list]})
+                write_json(full_path + ".info", {title: result_list})
         driver.quit()
         return content_all
     except Exception as e:
