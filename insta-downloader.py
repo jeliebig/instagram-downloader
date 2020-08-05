@@ -180,11 +180,11 @@ def driver_startup(driver_visible=False, disable_login=False, driver_sleep=defau
     return driver
 
 
-def update_profile(history_file, name, post_list):
+def update_profile(driver, history_file, name, post_list):
     try:
         update_dict = {}
         for post in diff_history(history_file, name, post_list):
-            post_results = get_insta_post(post, name, write_file=not args.json,
+            post_results = get_insta_post(post, name, write_file=not args.json, driver=driver,
                                           file_path=args.filepath, file_name=args.filename,
                                           driver_visible=visible, driver_sleep=args.sleep, no_info=args.no_info)
             if post_results is not None:
@@ -214,6 +214,7 @@ def get_insta_post(url, name, driver=None,
         options.headless = not driver_visible
         driver = webdriver.Firefox(options=options)
     try:
+        entry_url = driver.current_url
         driver.get(url)
         time.sleep(driver_sleep)
         if driver.execute_script('return document.getElementsByClassName("JSZAJ  _3eoV-  IjCL9  WXPwG").length') == 0:
@@ -300,7 +301,7 @@ def get_insta_post(url, name, driver=None,
                     if save_url not in content_all.keys():
                         content_all[save_url] = content_list
         if not write_file:
-            driver.quit()
+            driver.get(entry_url)
             return content_all
         for saves in content_all.keys():
             logging.debug("Now working on: %s", content_all[saves][2])
@@ -340,7 +341,7 @@ def get_insta_post(url, name, driver=None,
                              "description": result_list[4], "download_key": result_list[5],
                              "post_url": result_list[6], "download_url": result_list[7]}
                 write_json(full_path + ".info", info_dict)
-        driver.quit()
+        driver.get(entry_url)
         return content_all
     except Exception as e:
         logging.exception("Downloading Insta post failed. The following exception occurred: %s", e)
@@ -424,7 +425,7 @@ def download_profile_url(url, name, driver, no_login=False, driver_sleep=default
                         xpd = pd.find_elements_by_tag_name("a")
                         for post in reversed(xpd):
                             post_url = post.get_attribute("href")
-                            result = get_insta_post(post_url, name, write_file=write_file,
+                            result = get_insta_post(post_url, name, driver=driver, write_file=write_file,
                                                     file_path=file_path, file_name=file_name,
                                                     driver_visible=driver_visible,
                                                     driver_sleep=driver_sleep, no_info=no_info)
@@ -720,7 +721,7 @@ elif args.update:
                 profile_list = None
 
             if profile_list is not None and profile_list != "404":
-                profile_dict = update_profile(history_fullpath, profile_name, profile_list)
+                profile_dict = update_profile(profile_driver, history_fullpath, profile_name, profile_list)
             elif profile_list == "404":
                 logging.warning("Profile not found.")
                 continue
@@ -764,7 +765,7 @@ elif args.update:
                         logging.critical("Could not finish driver_startup.")
                         profile_list = None
                     if profile_list is not None and profile_list != "404":
-                        profile_dict = update_profile(history_fullpath, profile_name, profile_list)
+                        profile_dict = update_profile(profile_driver, history_fullpath, profile_name, profile_list)
                         logging.info("Finished update process.")
                     elif profile_list == "404":
                         logging.warning("Profile not found. Editing file...")
