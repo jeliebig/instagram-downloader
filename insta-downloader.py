@@ -206,6 +206,45 @@ def update_profile(driver, history_file, name, post_list):
         return None
 
 
+def get_content(driver, name=""):
+    content_all = {}
+    content_dict = {"images": driver.find_elements_by_tag_name("img"),
+                    "videos": driver.find_elements_by_tag_name("video")}
+    for key in content_dict:
+        for content in content_dict[key]:
+            a_post = driver.find_element_by_xpath(
+                "/html/body/div[1]/section/main/div/div/article/div/header/div[2]/div[1]").find_elements_by_tag_name(
+                "a")
+            insta_name = None
+            for x in a_post:
+                if "sqdOP yWX7d     _8A5w5   ZIAjV " == x.get_attribute("class"):
+                    insta_name = x.text
+            if insta_name is None or insta_name != name or \
+                    content.get_attribute("class") in ["_6q-tv", "s4Iyt"]:
+                continue
+            log.debug("Found post name: %s", insta_name)
+            log.debug("Now inspecting: %s", content.get_attribute("src"))
+            log.debug("Using key: %s", key)
+            icon_url = str(driver.find_element_by_tag_name("article").find_element_by_tag_name("header") \
+                           .find_element_by_tag_name("img").get_attribute("src"))
+            save_url = str(content.get_attribute("src"))
+            time_post = datetime.datetime.strptime(driver.find_element_by_tag_name("time") \
+                                                   .get_attribute("datetime").split(".")[0],
+                                                   "%Y-%m-%dT%H:%M:%S")
+            if driver.execute_script('return document.getElementsByTagName("h2").length') != 0:
+                title = str(
+                    driver.execute_script(
+                        'return document.getElementsByTagName("h2")[0].nextSibling.innerText'))
+            else:
+                title = "__no title__"
+            content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title,
+                            key]
+            if save_url not in content_all.keys():
+                log.debug("Adding URL to download list: %s", save_url)
+                content_all[save_url] = content_list
+    return content_all
+
+
 def get_insta_post(url, name, driver=None,
                    write_file=True, file_path=default_filepath, file_name=default_filename,
                    driver_visible=True, driver_sleep=default_sleep, no_info=False):
@@ -214,7 +253,8 @@ def get_insta_post(url, name, driver=None,
         options.headless = not driver_visible
         driver = webdriver.Firefox(options=options)
     try:
-        entry_url = driver.current_url
+        driver.execute_script("window.open()")
+        driver.switch_to.window(driver.window_handles[1])
         driver.get(url)
         time.sleep(driver_sleep)
         if driver.execute_script('return document.getElementsByClassName("JSZAJ  _3eoV-  IjCL9  WXPwG").length') == 0:
@@ -233,75 +273,13 @@ def get_insta_post(url, name, driver=None,
                 except Exception as e:
                     log.exception("Could not click next button. The following exception occurred: %s", e)
                 time.sleep(driver_sleep)
-                content_dict = {"images": driver.find_elements_by_tag_name("img"),
-                                "videos": driver.find_elements_by_tag_name("video")}
-                for key in content_dict:
-                    for content in content_dict[key]:
-                        a_post = driver.find_element_by_xpath(
-                            "/html/body/div[1]/section/main/div/div/"
-                            "article/header/div[2]/div[1]/div[1]").find_elements_by_tag_name("a")
-                        insta_name = None
-                        for x in a_post:
-                            if "sqdOP yWX7d     _8A5w5   ZIAjV " == x.get_attribute("class"):
-                                insta_name = x.text
-                        if insta_name is None or insta_name != name or \
-                                content.get_attribute("class") in ["_6q-tv", "s4Iyt"]:
-                            continue
-                        log.debug("Found post name: %s", insta_name)
-                        log.debug("Now inspecting: %s", content.get_attribute("src"))
-                        log.debug("Using key: %s", key)
-                        icon_url = str(driver.find_element_by_tag_name("article").find_element_by_tag_name("header") \
-                                       .find_element_by_tag_name("img").get_attribute("src"))
-                        save_url = str(content.get_attribute("src"))
-                        time_post = datetime.datetime.strptime(driver.find_element_by_tag_name("time") \
-                                                               .get_attribute("datetime").split(".")[0],
-                                                               "%Y-%m-%dT%H:%M:%S")
-                        if driver.execute_script('return document.getElementsByTagName("h2").length') != 0:
-                            title = str(
-                                driver.execute_script(
-                                    'return document.getElementsByTagName("h2")[0].nextSibling.innerText'))
-                        else:
-                            title = "__no title__"
-                        content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title,
-                                        key]
-                        if save_url not in content_all.keys():
-                            log.debug("Adding URL to download list: %s", save_url)
-                            content_all[save_url] = content_list
+                content_all = get_content(driver, name)
         else:
-            content_dict = {"images": driver.find_elements_by_tag_name("img"),
-                            "videos": driver.find_elements_by_tag_name("video")}
-            for key in content_dict:
-                for content in content_dict[key]:
-                    a_post = driver.find_element_by_xpath(
-                        "/html/body/div[1]/section/main/div/div/"
-                        "article/header/div[2]/div[1]/div[1]").find_elements_by_tag_name("a")
-                    insta_name = None
-                    for x in a_post:
-                        if "sqdOP yWX7d     _8A5w5   ZIAjV " == x.get_attribute("class"):
-                            insta_name = x.text
-                    if insta_name is None or name != insta_name or content.get_attribute("class") in ["_6q-tv",
-                                                                                                      "s4Iyt"]:
-                        continue
-                    log.debug("Found post name: %s", insta_name)
-                    log.debug("Now inspecting: %s", content.get_attribute("src"))
-                    log.debug("Using key: %s", key)
-                    icon_url = str(driver.find_element_by_tag_name("article").find_element_by_tag_name("header") \
-                                   .find_element_by_tag_name("img").get_attribute("src"))
-                    save_url = str(content.get_attribute("src"))
-                    time_post = datetime.datetime.strptime(driver.find_element_by_tag_name("time") \
-                                                           .get_attribute("datetime").split(".")[0],
-                                                           "%Y-%m-%dT%H:%M:%S")
-                    if driver.execute_script('return document.getElementsByTagName("h2").length') != 0:
-                        title = str(
-                            driver.execute_script(
-                                'return document.getElementsByTagName("h2")[0].nextSibling.innerText'))
-                    else:
-                        title = "__no title__"
-                    content_list = [insta_name, icon_url, save_url, time_post.strftime("%Y-%m-%d_%H-%M-%S"), title, key]
-                    if save_url not in content_all.keys():
-                        content_all[save_url] = content_list
+            content_all = get_content(driver, name)
         if not write_file:
-            driver.get(entry_url)
+            driver.execute_script("window.close()")
+            driver.switch_to.window(driver.window_handles[0])
+            time.sleep(driver_sleep)
             return content_all
         for saves in content_all.keys():
             log.debug("Now working on: %s", content_all[saves][2])
@@ -341,7 +319,9 @@ def get_insta_post(url, name, driver=None,
                              "description": result_list[4], "download_key": result_list[5],
                              "post_url": result_list[6], "download_url": result_list[7]}
                 write_json(full_path + ".info", info_dict)
-        driver.get(entry_url)
+        driver.execute_script("window.close()")
+        driver.switch_to.window(driver.window_handles[0])
+        time.sleep(driver_sleep)
         return content_all
     except Exception as e:
         log.exception("Downloading Insta post failed. The following exception occurred: %s", e)
@@ -445,7 +425,8 @@ def download_profile_url(url, name, driver, no_login=False, driver_sleep=default
                          "Shutting down to prevent further damage.")
             exit(2)
     except selenium.common.exceptions.WebDriverException as e:
-        log.warning("Profile does not exist: %s", url)
+        # log.warning("Profile does not exist: %s", url)
+        log.exception("Profile does not exist: %s\n Exception: %s", url, e)
         try:
             driver.quit()
         except Exception:
