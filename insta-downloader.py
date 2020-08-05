@@ -425,8 +425,7 @@ def download_profile_url(url, name, driver, no_login=False, driver_sleep=default
                          "Shutting down to prevent further damage.")
             exit(2)
     except selenium.common.exceptions.WebDriverException as e:
-        # log.warning("Profile does not exist: %s", url)
-        log.exception("Profile does not exist: %s\n Exception: %s", url, e)
+        log.warning("Profile does not exist: %s", url)
         try:
             driver.quit()
         except Exception:
