@@ -559,6 +559,7 @@ else:
     debug_output = False
 
 log = logging.getLogger("Insta-Downloader")
+log.setLevel(logging.DEBUG)
 log_format = logging.Formatter("%(asctime)s [%(levelname)s] (%(funcName)s): %(message)s")
 log_stream = logging.StreamHandler()
 log_stream.setFormatter(log_format)
