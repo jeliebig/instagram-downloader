@@ -1,4 +1,13 @@
-# Instagram Downloader
+# NOTE: ARCHIVED Repository
+
+I just found out that youtube-dl supports instagram and everything I would like to do can be done with it. So in the future, please use: [youtube-dl](https://github.com/ytdl-org/youtube-dl)
+
+There is no reason to use my project over youtube-dl, that's why I decided to archive this repo. I still want to thank you for even visting this project. Hope to see you in my other repos eventually, bye!
+
+
+
+
+# Instagram Downloader -- ARCHIVED
 A little python tool to download all or just the recent Instagram posts of provided profiles.
 
 ## Syntax (How to use)
